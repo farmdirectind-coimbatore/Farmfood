@@ -19,29 +19,25 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
 };
-
-export const metadata: Metadata = {
-  title: "FarmDirect Daily Fresh Vegetables | Coimbatore Agri-Tech Startup",
-  description: "Farm-fresh vegetables straight from local farmers to your door. Zero middlemen, peak freshness, fair pricing. Investment opportunities with 18% APY returns.",
-  keywords: ["FarmDirect", "fresh vegetables", "Coimbatore", "Tamil Nadu", "agri-tech", "farm to table", "organic vegetables", "investment opportunity"],
-  authors: [{ name: "FarmDirect Team" }],
-  icons: {
-    icon: "/images/favicon.png",
-  },
+export const metadata = {
+  title: "FarmDirect Daily Fresh Vegetables",
+  description: "Fresh vegetables directly from farmers to your home in Coimbatore.",
   openGraph: {
     title: "FarmDirect Daily Fresh Vegetables",
-    description: "Farm-fresh vegetables straight from local farmers. Investment opportunities with 18% APY returns.",
-    url: "https://farmdirect.in",
+    description: "Fresh vegetables directly from farmers to your home.",
+    url: "https://farmdirect.co.in",
     siteName: "FarmDirect",
+    images: [
+      {
+        url: "/processing.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
     type: "website",
-    images: ["/images/hero-vegetables.png"]
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "FarmDirect Daily Fresh Vegetables",
-    description: "Farm-fresh vegetables straight from local farmers to your door.",
   },
 };
+
 
 export default function RootLayout({
   children,
