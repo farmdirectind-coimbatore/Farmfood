@@ -1,3 +1,22 @@
+export const metadata = {
+  title: "FarmDirect Daily Fresh Vegetables",
+  description: "Fresh vegetables directly from farmers to your home in Coimbatore.",
+  openGraph: {
+    title: "FarmDirect Daily Fresh Vegetables",
+    description: "Fresh vegetables directly from farmers to your home.",
+    url: "https://farmdirect.co.in",
+    siteName: "FarmDirect",
+    images: [
+      {
+        url: "/processing.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    type: "website",
+  },
+};
+
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
