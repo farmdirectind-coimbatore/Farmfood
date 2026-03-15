@@ -29,13 +29,20 @@ export const metadata: Metadata = {
     icon: "/images/processing.png",
   },
   openGraph: {
-    title: "FarmDirect Daily Fresh Vegetables",
-    description: "Farm-fresh vegetables straight from local farmers. Investment opportunities with 18% APY returns.",
-    url: "https://farmdirect.co.in",
-    siteName: "FarmDirect",
-    type: "website",
-    images: ["/images/processing.png"]
-  },
+  title: "FarmDirect Daily Fresh Vegetables",
+  description: "Farm-fresh vegetables straight from local farmers. Investment opportunities with 18% APY returns.",
+  url: "https://farmdirect.co.in",
+  siteName: "FarmDirect",
+  type: "website",
+  images: [
+    {
+      url: "https://farmdirect.co.in/images/processing.png",
+      width: 1200,
+      height: 630,
+      alt: "FarmDirect Fresh Vegetables"
+    }
+  ]
+},
   twitter: {
     card: "summary_large_image",
     title: "FarmDirect Daily Fresh Vegetables",
