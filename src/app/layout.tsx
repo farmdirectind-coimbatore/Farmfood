@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   keywords: ["FarmDirect", "fresh vegetables", "Coimbatore", "Tamil Nadu", "agri-tech", "farm to table", "organic vegetables", "investment opportunity"],
   authors: [{ name: "FarmDirect Team" }],
   icons: {
-    icon: "/images/processing.png",
+    icon: "/images/favicon.png",
   },
   openGraph: {
   title: "FarmDirect Daily Fresh Vegetables",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   type: "website",
   images: [
     {
-      url: "https://farmdirect.co.in/images/processing.png",
+      url: "https://farmdirect.co.in/images/favicon.png",
       width: 1200,
       height: 630,
       alt: "FarmDirect Fresh Vegetables"
