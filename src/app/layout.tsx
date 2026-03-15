@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "FarmDirect Daily Fresh Vegetables",
     description: "Farm-fresh vegetables straight from local farmers. Investment opportunities with 18% APY returns.",
-    url: "https://farmdirect.in",
+    url: "https://farmdirect.co.in",
     siteName: "FarmDirect",
     type: "website",
     images: ["/images/processing.png"]
