@@ -1,26 +1,16 @@
-import eslintPluginReact from "eslint-plugin-react";
+import nextConfig from "eslint-config-next";
 
-/** @type {import("eslint").Linter.Config} */
-export default {
-  plugins: {
-    react: eslintPluginReact,
+const config = [
+  {
+    ignores: [
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "build/**",
+      "public/**",
+    ],
   },
-  extends: ["next/core-web-vitals", "eslint:recommended", "plugin:react/recommended"],
-  parserOptions: {
-    ecmaVersion: 2024,
-    sourceType: "module",
-  },
-  env: {
-    browser: true,
-    node: true,
-    es2024: true,
-  },
-  settings: {
-    react: {
-      version: "detect",
-    },
-  },
-  rules: {
-    // Project specific rules can go here
-  },
-};
+  ...nextConfig,
+];
+
+export default config;

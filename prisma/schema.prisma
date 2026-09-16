@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum PurchaseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum HoldingStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  supabaseId    String    @unique @map("supabase_id")
+  email         String    @unique
+  name          String?
+  avatarUrl     String?   @map("avatar_url")
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  profile       Profile?
+  purchaseRequests PurchaseRequest[]
+  holdings      Holding[]
+  payouts       Payout[]
+  notifications Notification[]
+  markedPayouts Payout[]     @relation("MarkedPayouts")
+  reviewedRequests PurchaseRequest[] @relation("ReviewedRequests")
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  phone       String?
+  address     String?
+  panNumber   String?  @map("pan_number")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model BankDetails {
+  id            String   @id @default(cuid())
+  bankName      String   @map("bank_name")
+  accountName   String   @map("account_name")
+  accountNumber String   @map("account_number")
+  ifscCode      String   @map("ifsc_code")
+  upiId         String?  @map("upi_id")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("bank_details")
+}
+
+model PurchaseRequest {
+  id                    String          @id @default(cuid())
+  userId                String          @map("user_id")
+  shares                Int
+  amount                Decimal         @db.Decimal(12, 2)
+  dailyPayout           Decimal         @db.Decimal(10, 2) @map("daily_payout")
+  totalProjectedReturn  Decimal         @db.Decimal(12, 2) @map("total_projected_return")
+  screenshotUrl         String          @map("screenshot_url")
+  status                PurchaseStatus  @default(PENDING)
+  rejectionReason       String?         @map("rejection_reason")
+  reviewedBy            String?         @map("reviewed_by")
+  reviewedAt            DateTime?       @map("reviewed_at")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedByUser        User?           @relation("ReviewedRequests", fields: [reviewedBy], references: [id])
+  holding               Holding?
+
+  @@map("purchase_requests")
+}
+
+model Holding {
+  id                    String        @id @default(cuid())
+  userId                String        @map("user_id")
+  purchaseRequestId     String        @unique @map("purchase_request_id")
+  shares                Int
+  amountInvested        Decimal       @db.Decimal(12, 2) @map("amount_invested")
+  dailyPayout           Decimal       @db.Decimal(10, 2) @map("daily_payout")
+  totalProjectedReturn  Decimal       @db.Decimal(12, 2) @map("total_projected_return")
+  startDate             DateTime      @map("start_date")
+  endDate               DateTime      @map("end_date")
+  weekdaysPaid          Int           @default(0) @map("weekdays_paid")
+  totalPaid             Decimal       @default(0) @db.Decimal(12, 2) @map("total_paid")
+  status                HoldingStatus @default(ACTIVE)
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchaseRequest       PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
+  payouts               Payout[]
+
+  @@map("holdings")
+}
+
+model Payout {
+  id            String   @id @default(cuid())
+  holdingId     String   @map("holding_id")
+  userId        String   @map("user_id")
+  payoutDate    DateTime @map("payout_date")
+  amount        Decimal  @db.Decimal(10, 2)
+  runningTotal  Decimal  @db.Decimal(12, 2) @map("running_total")
+  weekdaysPaid  Int      @map("weekdays_paid")
+  markedBy      String?  @map("marked_by")
+  markedAt      DateTime @default(now()) @map("marked_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  holding       Holding  @relation(fields: [holdingId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  markedByUser  User?    @relation("MarkedPayouts", fields: [markedBy], references: [id])
+
+  @@unique([holdingId, payoutDate])
+  @@map("payouts")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  type      String
+  title     String
+  message   String
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String   @map("admin_id")
+  action    String
+  entityType String  @map("entity_type")
+  entityId  String   @map("entity_id")
+  oldData   Json?
+  newData   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  admin     User     @relation(fields: [adminId], references: [id])
+
+  @@map("audit_logs")
+}
