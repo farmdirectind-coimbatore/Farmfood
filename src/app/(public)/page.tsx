@@ -30,19 +30,19 @@ const revenueStreams = [
     icon: Fish,
     title: 'Fresh Livestock',
     desc: 'Fish, chicken, and rabbit raised responsibly on the land. Fresh, ethically sourced protein available for purchase.',
-    image: '/images/hero-farmland.png',
+    image: '/images/fresh livestock.png',
   },
   {
     icon: Coffee,
     title: 'Coconut Water & Farm Drinks',
     desc: 'Fresh tender coconut water straight from the tree, plus traditional snacks and drinks made from our own produce.',
-    image: '/images/processing.png',
+    image: '/images/coconutwater & farm drinks.png',
   },
   {
     icon: Utensils,
     title: 'Kerala-Style Hut Restaurant',
     desc: 'Authentic Kerala cuisine served in an old-style hut setting — farm-fresh ingredients cooked the traditional way.',
-    image: '/images/hero-rice-fields.jpg',
+    image: '/images/kera-style hut restaurant.png',
   },
   {
     icon: Factory,
@@ -54,7 +54,7 @@ const revenueStreams = [
     icon: TreePine,
     title: 'Weekend Agro-Tourism Destination',
     desc: 'A calm, forest-like space where families walk the land, meet the animals, and enjoy a meal together.',
-    image: '/images/expansion-bg.jpg',
+    image: '/images/weekend agro-tourism.png',
   },
 ];
 
