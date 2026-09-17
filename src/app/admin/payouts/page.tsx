@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, CheckCircle2, Loader2, Users, TrendingUp, BadgeCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatINR } from '@/lib/utils/currency';
+import { normalizeProfile } from '@/lib/utils/profile';
 
 interface PayoutItem {
   id: string;
@@ -19,13 +20,22 @@ interface PayoutItem {
       name: string | null;
       email: string;
       phone: string | null;
-      profiles?: Array<{
-        phone: string | null;
-        account_holder_name: string | null;
-        account_number: string | null;
-        ifsc_code: string | null;
-        upi_id: string | null;
-      }> | null;
+      profiles?:
+        | {
+            phone: string | null;
+            account_holder_name: string | null;
+            account_number: string | null;
+            ifsc_code: string | null;
+            upi_id: string | null;
+          }
+        | Array<{
+            phone: string | null;
+            account_holder_name: string | null;
+            account_number: string | null;
+            ifsc_code: string | null;
+            upi_id: string | null;
+          }>
+        | null;
     };
   } | null;
   amount: number;
@@ -172,7 +182,7 @@ export default function AdminPayoutsPage() {
           <div className="divide-y divide-[#d8f3dc]">
             {pending.map(item => {
               const holding = item.holding;
-              const profile = holding?.user?.profiles?.[0] ?? null;
+              const profile = normalizeProfile(holding?.user?.profiles);
               return (
                 <div key={item.id} className="px-4 py-3">
                   <div className="flex items-center justify-between flex-wrap gap-3">

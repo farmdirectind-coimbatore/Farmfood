@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from '@/lib/auth/admin';
+import { normalizeProfile } from '@/lib/utils/profile';
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,8 +54,7 @@ export async function GET(request: NextRequest) {
       const totalShares = u.holdings?.reduce((sum: number, h: any) => sum + h.shares, 0) || 0;
       const totalInvested = u.holdings?.reduce((sum: number, h: any) => sum + Number(h.amount_invested), 0) || 0;
       const pendingRequests = u.purchase_requests?.filter((pr: any) => pr.status === 'PENDING').length || 0;
-      const profileArr = (u.profile ?? []) as Array<{ phone: string | null; account_holder_name: string | null; account_number: string | null; ifsc_code: string | null; upi_id: string | null }> | null;
-      const profile = profileArr?.[0] ?? null;
+      const profile = normalizeProfile(u.profile);
 
       return {
         id: u.id,

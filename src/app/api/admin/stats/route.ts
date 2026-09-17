@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from '@/lib/auth/admin';
-import { calculateHoldingProgress, INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
+import { calculateHoldingProgress, eligibleWeekdayBatchDates, INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,11 +32,13 @@ export async function GET(request: NextRequest) {
 
     if (holdingsError) throw holdingsError;
 
-    // Fetch today's payouts
+    // Today's payouts (only rows actually due today, i.e. past the 6 AM batch)
+    const now = new Date();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+    const isWeekday = today.getDay() !== 0 && today.getDay() !== 6;
 
     const { data: todaysPayouts, error: payoutsError } = await adminClient
       .from('payouts')
@@ -46,31 +48,46 @@ export async function GET(request: NextRequest) {
 
     if (payoutsError) throw payoutsError;
 
+    const markedToday = new Set(todaysPayouts?.filter(p => p.marked_by).map(p => p.holding_id) ?? []);
+
+    let paidToday = 0;
+    let pendingToday = 0;
+    for (const h of holdings ?? []) {
+      if (h.status !== 'ACTIVE') continue;
+      const startDate = new Date(h.start_date);
+      startDate.setHours(0, 0, 0, 0);
+      if (startDate > today) continue;
+      const endDate = new Date(h.end_date);
+      endDate.setHours(0, 0, 0, 0);
+      if (endDate < today) continue;
+      if (!isWeekday) continue;
+
+      const eligibleDates = eligibleWeekdayBatchDates(new Date(h.start_date), now);
+      if (eligibleDates.length === 0) continue;
+      const last = eligibleDates[eligibleDates.length - 1];
+      const dueToday =
+        last.getFullYear() === today.getFullYear() &&
+        last.getMonth() === today.getMonth() &&
+        last.getDate() === today.getDate();
+      if (!dueToday) continue;
+
+      if (markedToday.has(h.id)) {
+        paidToday++;
+      } else {
+        pendingToday++;
+      }
+    }
+
+    const todaysPayoutCount = paidToday + pendingToday;
+
     // Calculate stats
     const totalUsers = users?.length || 0;
     const verifiedUsers = users?.filter(u => u.role === 'USER').length || 0;
-    
+
     const totalShares = holdings?.reduce((sum, h) => sum + h.shares, 0) || 0;
     const totalInvested = holdings?.reduce((sum, h) => sum + Number(h.amount_invested), 0) || 0;
 
     const pendingRequests = purchaseRequests?.length || 0;
-
-    // Today's payouts
-    const activeHoldingsToday = holdings?.filter(h => {
-      if (h.status !== 'ACTIVE') return false;
-      const startDate = new Date(h.start_date);
-      startDate.setHours(0, 0, 0, 0);
-      if (startDate > today) return false;
-      const endDate = new Date(h.end_date);
-      endDate.setHours(0, 0, 0, 0);
-      if (endDate < today) return false;
-      // Check if weekday
-      const day = today.getDay();
-      return day !== 0 && day !== 6;
-    }) || [];
-
-    const paidToday = todaysPayouts?.filter(p => p.marked_by).length || 0;
-    const pendingToday = activeHoldingsToday.length - paidToday;
 
     // Holdings completing soon (less than 10 weekdays left)
     const completingSoon = holdings?.filter(h => {
@@ -85,7 +102,7 @@ export async function GET(request: NextRequest) {
       totalShares,
       totalInvested,
       pendingRequests,
-      todaysPayouts: activeHoldingsToday.length,
+      todaysPayouts: todaysPayoutCount,
       paidToday,
       pendingToday,
       completingSoon,
