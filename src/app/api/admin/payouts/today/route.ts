@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from '@/lib/auth/admin';
-import { calculateHoldingProgress, INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
+import { eligibleWeekdayBatchDates, INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,130 +10,123 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isWeekday = today.getDay() !== 0 && today.getDay() !== 6;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayStart = today.toISOString();
 
-    // Get all active holdings
+    // Get all active holdings with user + bank profile
     const { data: holdings, error: holdingsError } = await adminClient
       .from('holdings')
       .select(`
         *,
-        user:users!holdings_user_id_fkey(id, name, email)
+        user:users!holdings_user_id_fkey(
+          id, name, email,
+          profiles:profiles!profiles_user_id_fkey(phone, account_holder_name, account_number, ifsc_code, upi_id)
+        )
       `)
       .eq('status', 'ACTIVE');
 
     if (holdingsError) throw holdingsError;
 
-    // Get today's payouts
-    const { data: todaysPayouts, error: payoutsError } = await adminClient
+    // Get all existing payout rows for active holdings
+    const activeHoldingIds = (holdings || []).map(h => h.id);
+    const { data: allPayouts, error: payoutsError } = await adminClient
       .from('payouts')
       .select('*')
-      .gte('payout_date', today.toISOString())
-      .lt('payout_date', tomorrow.toISOString());
+      .in('holding_id', activeHoldingIds.length > 0 ? activeHoldingIds : ['__none__']);
 
     if (payoutsError) throw payoutsError;
 
-    const paidPayoutIds = new Set(todaysPayouts?.filter(p => p.marked_by).map(p => p.id) || []);
+    const existingByHolding = new Map<string, Map<string, any>>();
+    for (const payout of allPayouts || []) {
+      if (!existingByHolding.has(payout.holding_id)) {
+        existingByHolding.set(payout.holding_id, new Map());
+      }
+      existingByHolding.get(payout.holding_id)!.set(payout.payout_date.slice(0, 10), payout);
+    }
 
-    // Process pending payouts for today (only on weekdays)
-    let pending: any[] = [];
-    let paid: any[] = [];
+    const pending: any[] = [];
+    const paidToday: any[] = [];
+    const nearingCompletion: any[] = [];
 
-    if (isWeekday) {
-      // Find holdings that should get a payout today
-      for (const holding of holdings || []) {
-        const startDate = new Date(holding.start_date);
-        startDate.setHours(0, 0, 0, 0);
-        const endDate = new Date(holding.end_date);
-        endDate.setHours(0, 0, 0, 0);
+    // Generate + bucket payouts for each active holding
+    for (const holding of holdings || []) {
+      const startDate = new Date(holding.start_date);
+      const endDate = new Date(holding.end_date);
+      if (endDate < today) continue;
 
-        if (startDate > today || endDate < today) continue;
+      const eligibleDates = eligibleWeekdayBatchDates(startDate, now);
+      const holdingRows = existingByHolding.get(holding.id) || new Map();
+      const confirmedWeekdays = holding.weekdays_paid || 0;
 
-        const progress = calculateHoldingProgress(holding, today);
-        
-        // Check if this holding already has a payout for today
-        const existingPayout = todaysPayouts?.find(p => p.holding_id === holding.id);
-        
-        if (existingPayout) {
-          if (existingPayout.marked_by) {
-            paid.push({
-              ...existingPayout,
-              holding,
-              amount: Number(existingPayout.amount),
-              running_total: Number(existingPayout.running_total),
-            });
-          } else {
-            pending.push({
-              ...existingPayout,
-              holding,
-              amount: Number(existingPayout.amount),
-              running_total: Number(existingPayout.running_total),
-            });
-          }
-        } else {
-          // Need to create payout record for today
-          const nextWeekdayPaid = holding.weekdays_paid + 1;
-          const runningTotal = Number(holding.total_paid) + Number(holding.daily_payout);
-          
-          // Create the payout record
-          const { data: newPayout } = await adminClient
+      for (let i = 0; i < eligibleDates.length; i++) {
+        const batchIndex = i + 1;
+        if (batchIndex <= confirmedWeekdays) continue;
+
+        const date = eligibleDates[i];
+        const dateKey = date.toISOString().slice(0, 10);
+        let row = holdingRows.get(dateKey);
+
+        if (!row) {
+          const runningTotal = Number(holding.total_paid) + Number(holding.daily_payout) * (batchIndex - confirmedWeekdays);
+          const { data: newRow, error: insertError } = await adminClient
             .from('payouts')
             .insert({
               holding_id: holding.id,
               user_id: holding.user_id,
-              payout_date: today.toISOString(),
+              payout_date: date.toISOString(),
               amount: holding.daily_payout,
               running_total: runningTotal,
-              weekdays_paid: nextWeekdayPaid,
+              weekdays_paid: batchIndex,
             })
             .select()
             .single();
 
-          if (newPayout) {
-            pending.push({
-              ...newPayout,
-              holding,
-              amount: Number(newPayout.amount),
-              running_total: Number(newPayout.running_total),
-            });
-          }
+          if (insertError) throw insertError;
+          row = newRow;
+          holdingRows.set(dateKey, row);
         }
+
+        if (row.marked_by) {
+          if (row.marked_at && row.marked_at >= todayStart) {
+            paidToday.push({ ...row, holding, amount: Number(row.amount), running_total: Number(row.running_total) });
+          }
+        } else {
+          pending.push({ ...row, holding, amount: Number(row.amount), running_total: Number(row.running_total) });
+        }
+      }
+
+      // Nearing completion (1..10 confirmed weekdays left)
+      const remaining = INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS - confirmedWeekdays;
+      if (remaining > 0 && remaining <= 10) {
+        nearingCompletion.push({
+          id: `nearing-${holding.id}`,
+          holding_id: holding.id,
+          holding,
+          amount: Number(holding.daily_payout),
+          running_total: Number(holding.total_paid),
+          weekdays_paid: holding.weekdays_paid,
+          payout_date: today.toISOString(),
+          marked_by: null,
+        });
       }
     }
 
-    // Paid today (including from previous days if marked today)
-    const paidToday = todaysPayouts?.filter(p => p.marked_by).map(p => ({
-      ...p,
-      amount: Number(p.amount),
-      running_total: Number(p.running_total),
-    })) || [];
-
-    // Nearing completion (less than 10 weekdays left)
-    const nearingCompletion = holdings?.filter(h => {
-      if (h.status !== 'ACTIVE') return false;
-      const progress = calculateHoldingProgress(h, today);
-      return progress.daysLeft > 0 && progress.daysLeft <= 10;
-    }).map(h => {
-      // Create a mock payout object for display
-      const progress = calculateHoldingProgress(h, today);
-      return {
-        id: `nearing-${h.id}`,
-        holding_id: h.id,
-        holding: h,
-        amount: Number(h.daily_payout),
-        running_total: Number(h.total_paid),
-        weekdays_paid: progress.weekdaysPaid,
-        payout_date: today.toISOString(),
-        marked_by: null,
-      };
-    }) || [];
-
     // Completed holdings
-    const completedHoldings = holdings?.filter(h => h.status === 'COMPLETED') || [];
-    const completed = completedHoldings.map(h => ({
+    const { data: completedHoldings, error: completedError } = await adminClient
+      .from('holdings')
+      .select(`
+        *,
+        user:users!holdings_user_id_fkey(
+          id, name, email,
+          profiles:profiles!profiles_user_id_fkey(phone, account_holder_name, account_number, ifsc_code, upi_id)
+        )
+      `)
+      .eq('status', 'COMPLETED');
+
+    if (completedError) throw completedError;
+
+    const completed = (completedHoldings || []).map(h => ({
       id: `completed-${h.id}`,
       holding_id: h.id,
       holding: h,

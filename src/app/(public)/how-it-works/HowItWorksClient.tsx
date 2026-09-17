@@ -7,20 +7,20 @@ import { APP_CONSTANTS } from '@/lib/constants';
 import { useSupabaseSession } from '@/components/SupabaseSessionProvider';
 
 const steps = [
-  { number: '01', title: 'Choose Your Shares', desc: 'Each share costs ₹10,000. Use the calculator below to see your exact returns.', icon: Leaf },
+  { number: '01', title: 'Choose Your Lots', desc: 'Each lot costs ₹10,000. Use the calculator below to see your exact returns.', icon: Leaf },
   { number: '02', title: 'Transfer Funds', desc: 'Send payment to our bank account (shown after you confirm). Upload a screenshot of the transfer.', icon: Wallet },
   { number: '03', title: 'Verification & Activation', desc: 'Our team verifies your payment within 24 hours. Your holding activates and daily payouts begin on the next weekday.', icon: CheckCircle },
-  { number: '04', title: 'Daily Payouts', desc: '1% of your investment daily (₹100 per share) on weekdays only — credited to your wallet automatically.', icon: Calendar },
+  { number: '04', title: 'Daily Payouts', desc: '1% of your investment daily (₹100 per lot) on weekdays only — credited to your wallet automatically.', icon: Calendar },
   { number: '05', title: 'Track & Reinvest', desc: 'Monitor your portfolio in real-time. At cycle end, reinvest or withdraw. Your principal stays safe.', icon: TrendingUp },
 ];
 
 const faqs = [
   { q: 'Is this a guaranteed return?', a: 'This is a farm revenue-sharing product, not a bank deposit or guaranteed financial instrument. Returns come from actual farm operations and may vary due to weather, market conditions, crop failure, livestock disease, regulatory changes, and other agricultural risks. Past performance does not guarantee future results.' },
   { q: 'Why only weekdays?', a: 'Our farm operations and markets run Monday–Friday. Weekends are for visitor operations and maintenance. 249 weekdays equals approximately one calendar year.' },
-  { q: 'Can I withdraw early?', a: 'Yes, you can withdraw accumulated payouts anytime once your wallet reaches ₹100 minimum. Your principal (share value) remains invested for the full 249-weekday cycle.' },
+  { q: 'Can I withdraw early?', a: 'Yes, you can withdraw accumulated payouts anytime once your wallet reaches ₹100 minimum. Your principal (lot value) remains invested for the full 249-weekday cycle.' },
   { q: 'What happens after 249 weekdays?', a: 'Your holding completes its cycle. You receive your final payout and can choose to reinvest in a new cycle or withdraw.' },
   { q: 'How is my money used?', a: 'Funds go directly into farm operations: crop cultivation, livestock care, restaurant supplies, infrastructure, and expansion. You can visit the farm to see your investment at work.' },
-  { q: 'Are there any fees?', a: 'No hidden fees. The share price includes everything. Bank transfer charges (if any) are borne by the investor.' },
+  { q: 'Are there any fees?', a: 'No hidden fees. The lot price includes everything. Bank transfer charges (if any) are borne by the investor.' },
 ];
 
 export default function HowItWorksClient() {
@@ -48,7 +48,7 @@ export default function HowItWorksClient() {
         <div className="max-w-xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#1a2e1a] mb-3">Investment Calculator</h2>
-            <p className="text-[#52796f] text-sm sm:text-base">Adjust shares to see your exact projected returns</p>
+            <p className="text-[#52796f] text-sm sm:text-base">Adjust lots to see your exact projected returns</p>
           </div>
           <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-lg border border-[#d8f3dc]">
             <ShareCalculator showBonus={false} maxShares={1000} />
@@ -61,7 +61,7 @@ export default function HowItWorksClient() {
                 href="/dashboard/buy-shares"
                 className="inline-flex items-center gap-2 bg-[#2d6a4f] text-white font-semibold py-3.5 px-8 rounded-2xl shadow-md hover:bg-[#1a4d3a] hover:shadow-lg transition-all active:scale-[0.97]"
               >
-                Buy Shares Now
+                Buy Lots Now
                 <ArrowRight className="w-5 h-5" />
               </Link>
             ) : (
@@ -87,11 +87,11 @@ export default function HowItWorksClient() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-14">
             <div className="bg-white rounded-2xl p-5 sm:p-6 text-center border border-[#d8f3dc]">
               <p className="text-2xl sm:text-4xl font-display font-bold text-[#2d6a4f]">₹{APP_CONSTANTS.SHARE_PRICE.toLocaleString()}</p>
-              <p className="text-[#52796f] text-xs sm:text-sm mt-1">Per Share</p>
+              <p className="text-[#52796f] text-xs sm:text-sm mt-1">Per Lot</p>
             </div>
             <div className="bg-white rounded-2xl p-5 sm:p-6 text-center border border-[#d8f3dc]">
               <p className="text-2xl sm:text-4xl font-display font-bold text-[#2d6a4f]">₹{Math.round(APP_CONSTANTS.SHARE_PRICE * APP_CONSTANTS.DAILY_RETURN_RATE).toLocaleString()}</p>
-              <p className="text-[#52796f] text-xs sm:text-sm mt-1">Daily Payout / Share</p>
+              <p className="text-[#52796f] text-xs sm:text-sm mt-1">Daily Payout / Lot</p>
             </div>
             <div className="bg-white rounded-2xl p-5 sm:p-6 text-center border border-[#d8f3dc]">
               <p className="text-2xl sm:text-4xl font-display font-bold text-[#2d6a4f]">{APP_CONSTANTS.TOTAL_WEEKDAYS}</p>
@@ -99,7 +99,7 @@ export default function HowItWorksClient() {
             </div>
             <div className="bg-white rounded-2xl p-5 sm:p-6 text-center border border-[#d8f3dc]">
               <p className="text-2xl sm:text-4xl font-display font-bold text-[#2d6a4f]">1%</p>
-              <p className="text-[#52796f] text-xs sm:text-sm mt-1">Daily Return / Share</p>
+              <p className="text-[#52796f] text-xs sm:text-sm mt-1">Daily Return / Lot</p>
             </div>
           </div>
 
@@ -135,7 +135,7 @@ export default function HowItWorksClient() {
                 Asset-Backed
               </h3>
               <p className="text-[#52796f] text-sm leading-relaxed">
-                Your shares represent a stake in a real, operating farm with tangible assets — land, crops, livestock, buildings, and equipment. You can visit and see exactly what you own.
+                Your lots represent a stake in a real, operating farm with tangible assets — land, crops, livestock, buildings, and equipment. You can visit and see exactly what you own.
               </p>
             </div>
             <div className="bg-white rounded-2xl p-6 border border-[#d8f3dc]">

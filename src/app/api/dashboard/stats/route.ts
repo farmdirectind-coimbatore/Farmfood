@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { adminClient } from '@/lib/supabase/admin';
-import { calculateHoldingProgress, INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
+import { INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate stats
-    const today = new Date();
     let totalShares = 0;
     let totalInvested = 0;
     let dailyPayoutRate = 0;
@@ -43,27 +42,39 @@ export async function GET(request: NextRequest) {
     let totalReceived = 0;
     let projectedRemaining = 0;
 
+    // Total confirmed (admin-approved) payouts for this user
+    const { data: confirmedPayouts } = await adminClient
+      .from('payouts')
+      .select('amount')
+      .eq('user_id', userProfile.id)
+      .not('marked_by', 'is', null);
+    totalReceived = confirmedPayouts?.reduce((sum: number, p: any) => sum + Number(p.amount), 0) || 0;
+
     const processedHoldings = holdings?.map(holding => {
-      const progress = calculateHoldingProgress(holding, today);
-      
+      const weekdaysPaid = holding.weekdays_paid || 0;
+      const totalPaid = Number(holding.total_paid || 0);
+      const totalProjectedReturn = Number(holding.total_projected_return);
+      const progressPercent = Math.min(100, (weekdaysPaid / INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS) * 100);
+      const isComplete = holding.status === 'COMPLETED' || weekdaysPaid >= INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS;
+
       totalShares += holding.shares;
       totalInvested += Number(holding.amount_invested);
       dailyPayoutRate += Number(holding.daily_payout);
-      totalWeekdaysPaid += progress.weekdaysPaid;
-      totalReceived += progress.amountReceived;
-      projectedRemaining += progress.amountRemaining;
+      totalWeekdaysPaid += weekdaysPaid;
 
       return {
         ...holding,
         amount_invested: Number(holding.amount_invested),
         daily_payout: Number(holding.daily_payout),
-        total_projected_return: Number(holding.total_projected_return),
-        total_paid: Number(holding.total_paid),
-        weekdays_paid: progress.weekdaysPaid,
-        progress_percent: progress.progressPercent,
-        is_complete: progress.isComplete,
+        total_projected_return: totalProjectedReturn,
+        total_paid: totalPaid,
+        weekdays_paid: weekdaysPaid,
+        progress_percent: progressPercent,
+        is_complete: isComplete,
       };
     }) || [];
+
+    projectedRemaining = Math.max(0, (holdings?.reduce((sum, h) => sum + Number(h.total_projected_return || 0), 0) || 0) - totalReceived);
 
     const { data: profileRow } = await adminClient
       .from('profiles')

@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
         holding:holdings(shares, amount_invested)
       `)
       .eq('user_id', userProfile.id)
+      .not('marked_by', 'is', null)
       .order('payout_date', { ascending: false });
 
     if (error) throw error;

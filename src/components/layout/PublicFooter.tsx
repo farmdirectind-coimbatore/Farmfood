@@ -25,9 +25,8 @@ export default function PublicFooter() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Brand column */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4">
+            <Link href="/" className="flex items-center mb-4">
               <img src="/images/logo.png" alt="FarmDirect" className="h-10 w-auto" />
-              <span className="font-display text-xl font-bold text-white">FarmDirect</span>
             </Link>
             <p className="text-white/60 text-sm leading-relaxed max-w-xs">
               A working farm in Coimbatore combining agriculture, livestock, hospitality, and agro-tourism — with revenue shared directly with our investors.

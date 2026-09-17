@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const { data: profile, error: profileError } = await adminClient
       .from('profiles')
-      .select('phone, address, pan_number')
+      .select('phone, address, pan_number, account_holder_name, account_number, ifsc_code, upi_id')
       .eq('user_id', userProfile.id)
       .single();
 
@@ -71,7 +71,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { phone, address, pan_number, name } = body;
+    const { phone, address, pan_number, name, account_holder_name, account_number, ifsc_code, upi_id } = body;
 
     if (name?.trim()) {
       await adminClient
@@ -80,12 +80,23 @@ export async function PATCH(request: NextRequest) {
         .eq('id', userProfile.id);
     }
 
+    // Merge with existing row so untouched fields (address, PAN, bank) are preserved
+    const { data: existing } = await adminClient
+      .from('profiles')
+      .select('phone, address, pan_number, account_holder_name, account_number, ifsc_code, upi_id')
+      .eq('user_id', userProfile.id)
+      .single();
+
     const { error } = await adminClient
       .from('profiles')
       .update({
-        phone: phone || null,
-        address: address || null,
-        pan_number: pan_number?.toUpperCase() || null,
+        phone: phone !== undefined ? phone : existing?.phone ?? null,
+        address: address !== undefined ? address : existing?.address ?? null,
+        pan_number: pan_number !== undefined ? pan_number?.toUpperCase() || null : existing?.pan_number ?? null,
+        account_holder_name: account_holder_name !== undefined ? account_holder_name?.trim() || null : existing?.account_holder_name ?? null,
+        account_number: account_number !== undefined ? account_number?.trim() || null : existing?.account_number ?? null,
+        ifsc_code: ifsc_code !== undefined ? ifsc_code?.trim().toUpperCase() || null : existing?.ifsc_code ?? null,
+        upi_id: upi_id !== undefined ? upi_id?.trim() || null : existing?.upi_id ?? null,
       })
       .eq('user_id', userProfile.id);
 

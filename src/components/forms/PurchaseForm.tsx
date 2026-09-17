@@ -147,6 +147,7 @@ export function PurchaseForm() {
             initialShares={shares}
             onChange={(calc) => setShares(calc.shares)}
             maxShares={1000}
+            unit="share"
           />
         </div>
 

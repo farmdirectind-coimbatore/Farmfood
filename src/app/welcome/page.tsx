@@ -22,10 +22,22 @@ export default function WelcomePage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneTouched, setPhoneTouched] = useState(false);
+  const [accountHolderName, setAccountHolderName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [ifscCode, setIfscCode] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [bankTouched, setBankTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const saveMutation = useMutation({
-    mutationFn: async (payload: { name: string; phone: string }) => {
+    mutationFn: async (payload: {
+      name: string;
+      phone: string;
+      account_holder_name: string;
+      account_number: string;
+      ifsc_code: string;
+      upi_id?: string;
+    }) => {
       const res = await fetch('/api/dashboard/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -50,6 +62,11 @@ export default function WelcomePage() {
   }
 
   const phoneValid = /^\d{10,}$/.test(phone.replace(/\s/g, ''));
+  const holderValid = accountHolderName.trim().length > 0;
+  const accountValid = /^\d{9,18}$/.test(accountNumber.replace(/\s/g, ''));
+  const ifscValid = /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode.trim().toUpperCase());
+  const upiValid = upiId.trim() === '' || /^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim().replace(/\s/g, ''));
+  const bankValid = holderValid && accountValid && ifscValid && upiValid;
 
   if (isLoading) {
     return (
@@ -91,6 +108,7 @@ export default function WelcomePage() {
 
         {/* Step 1: Account Setup (only if phone not yet provided) */}
         {!submitted && !hasSetup && (
+          <>
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-[#d8f3dc] mb-8">
             <h2 className="text-xl font-bold text-[#1a2e1a] mb-6">Set up your account</h2>
 
@@ -127,13 +145,94 @@ export default function WelcomePage() {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Step 1b: Payout bank details */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border border-[#d8f3dc]">
+            <h2 className="text-xl font-bold text-[#1a2e1a] mb-1">Payout bank details</h2>
+            <p className="text-[#52796f] text-sm mb-6">
+              This is the bank account FarmDirect uses to pay your daily earnings.
+            </p>
+
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm text-[#52796f] mb-1.5 font-medium">Account Holder Name *</label>
+                <input
+                  type="text"
+                  value={accountHolderName}
+                  onChange={e => setAccountHolderName(e.target.value)}
+                  onBlur={() => setBankTouched(true)}
+                  placeholder="Name on the bank account"
+                  className="w-full px-4 py-3 bg-[#f0f7f0] border border-transparent rounded-xl text-[#1a2e1a] text-sm focus:outline-none focus:border-[#2d6a4f] transition-colors"
+                />
+                {bankTouched && !holderValid && (
+                  <p className="text-xs text-[#dc2626] mt-1">Account holder name is required</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm text-[#52796f] mb-1.5 font-medium">Account Number *</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={accountNumber}
+                  onChange={e => setAccountNumber(e.target.value)}
+                  onBlur={() => setBankTouched(true)}
+                  placeholder="Bank account number"
+                  className="w-full px-4 py-3 bg-[#f0f7f0] border border-transparent rounded-xl text-[#1a2e1a] text-sm focus:outline-none focus:border-[#2d6a4f] transition-colors"
+                />
+                {bankTouched && accountNumber && !accountValid && (
+                  <p className="text-xs text-[#dc2626] mt-1">Enter a valid account number (9–18 digits)</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm text-[#52796f] mb-1.5 font-medium">IFSC Code *</label>
+                <input
+                  type="text"
+                  value={ifscCode}
+                  onChange={e => setIfscCode(e.target.value.toUpperCase())}
+                  onBlur={() => setBankTouched(true)}
+                  placeholder="e.g. HDFC0001234"
+                  className="w-full px-4 py-3 bg-[#f0f7f0] border border-transparent rounded-xl text-[#1a2e1a] text-sm focus:outline-none focus:border-[#2d6a4f] transition-colors uppercase"
+                />
+                {bankTouched && ifscCode && !ifscValid && (
+                  <p className="text-xs text-[#dc2626] mt-1">Enter a valid IFSC code (e.g. HDFC0001234)</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm text-[#52796f] mb-1.5 font-medium">UPI ID <span className="text-[#95d5b2]">(optional)</span></label>
+                <input
+                  type="text"
+                  value={upiId}
+                  onChange={e => setUpiId(e.target.value)}
+                  onBlur={() => setBankTouched(true)}
+                  placeholder="yourname@upi (for fast GPay payments)"
+                  className="w-full px-4 py-3 bg-[#f0f7f0] border border-transparent rounded-xl text-[#1a2e1a] text-sm focus:outline-none focus:border-[#2d6a4f] transition-colors"
+                />
+                {bankTouched && upiId && !upiValid && (
+                  <p className="text-xs text-[#dc2626] mt-1">Enter a valid UPI ID (e.g. name@bank)</p>
+                )}
+              </div>
+            </div>
+          </div>
 
             <button
               onClick={() => {
-                if (!phoneValid) { setPhoneTouched(true); return; }
-                saveMutation.mutate({ name: name.trim() || displayName || '', phone: phone.replace(/\s/g, '') });
+                setPhoneTouched(true);
+                setBankTouched(true);
+                if (!phoneValid || !bankValid) return;
+                saveMutation.mutate({
+                  name: name.trim() || displayName || '',
+                  phone: phone.replace(/\s/g, ''),
+                  account_holder_name: accountHolderName.trim(),
+                  account_number: accountNumber.replace(/\s/g, ''),
+                  ifsc_code: ifscCode.trim().toUpperCase(),
+                  upi_id: upiId.trim() || undefined,
+                });
               }}
-              disabled={!phoneValid || saveMutation.isPending}
+              disabled={!phoneValid || !bankValid || saveMutation.isPending}
               className="w-full mt-6 inline-flex items-center justify-center gap-2 bg-[#2d6a4f] text-white font-semibold py-3.5 px-8 rounded-2xl shadow-md hover:bg-[#1a4d3a] hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
             >
               {saveMutation.isPending ? (
@@ -146,10 +245,10 @@ export default function WelcomePage() {
               )}
             </button>
 
-            {saveMutation.isError && (
+{saveMutation.isError && (
               <p className="text-sm text-[#dc2626] mt-3 text-center">Something went wrong. Please try again.</p>
             )}
-          </div>
+          </>
         )}
 
         {/* Step 2: Ready to buy */}

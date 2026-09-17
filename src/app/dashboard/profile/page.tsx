@@ -2,13 +2,19 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Mail, Phone, LogOut, Save, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, Landmark, LogOut, Save, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 interface Profile {
   id: string;
   phone: string | null;
+  address: string | null;
+  pan_number: string | null;
+  account_holder_name: string | null;
+  account_number: string | null;
+  ifsc_code: string | null;
+  upi_id: string | null;
   user: {
     name: string | null;
     email: string;
@@ -23,7 +29,13 @@ async function fetchProfile(): Promise<Profile> {
   return res.json();
 }
 
-async function updateProfile(data: { phone?: string }) {
+async function updateProfile(data: {
+  phone?: string;
+  account_holder_name?: string;
+  account_number?: string;
+  ifsc_code?: string;
+  upi_id?: string;
+}) {
   const res = await fetch('/api/dashboard/profile', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -40,6 +52,10 @@ export default function ProfilePage() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [formData, setFormData] = useState({
     phone: '',
+    account_holder_name: '',
+    account_number: '',
+    ifsc_code: '',
+    upi_id: '',
   });
 
   const { data: profile, isLoading, error } = useQuery({
@@ -138,6 +154,10 @@ export default function ProfilePage() {
                 onClick={() => {
                   setFormData({
                     phone: profile.phone || '',
+                    account_holder_name: profile.account_holder_name || '',
+                    account_number: profile.account_number || '',
+                    ifsc_code: profile.ifsc_code || '',
+                    upi_id: profile.upi_id || '',
                   });
                   setIsEditing(false);
                 }}
@@ -160,13 +180,17 @@ export default function ProfilePage() {
               </button>
             </div>
           ) : (
-            <button
+<button
               onClick={() => {
-                setFormData({
-                  phone: profile.phone || '',
-                });
-                setIsEditing(true);
-              }}
+                  setFormData({
+                    phone: profile.phone || '',
+                    account_holder_name: profile.account_holder_name || '',
+                    account_number: profile.account_number || '',
+                    ifsc_code: profile.ifsc_code || '',
+                    upi_id: profile.upi_id || '',
+                  });
+                  setIsEditing(true);
+                }}
               className="px-4 py-2 bg-[#2d6a4f] text-white rounded-xl font-medium hover:bg-[#1a4d3a] transition-colors"
             >
               Edit Profile
@@ -212,6 +236,64 @@ export default function ProfilePage() {
             />
           </div>
 
+          <div className="pt-4 border-t border-[#d8f3dc]">
+            <h3 className="text-lg font-semibold text-[#1a2e1a] mb-4">Payout Bank Details</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="account_holder_name" className="block text-sm text-[#52796f] mb-1">Account Holder Name</label>
+                <input
+                  type="text"
+                  id="account_holder_name"
+                  name="account_holder_name"
+                  value={formData.account_holder_name}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0]"
+                  placeholder="Name on the bank account"
+                />
+              </div>
+              <div>
+                <label htmlFor="account_number" className="block text-sm text-[#52796f] mb-1">Account Number</label>
+                <input
+                  type="text"
+                  id="account_number"
+                  name="account_number"
+                  value={formData.account_number}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0]"
+                  placeholder="Bank account number"
+                />
+              </div>
+              <div>
+                <label htmlFor="ifsc_code" className="block text-sm text-[#52796f] mb-1">IFSC Code</label>
+                <input
+                  type="text"
+                  id="ifsc_code"
+                  name="ifsc_code"
+                  value={formData.ifsc_code}
+                  onChange={e => setFormData(prev => ({ ...prev, ifsc_code: e.target.value.toUpperCase() }))}
+                  disabled={!isEditing}
+                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0] uppercase"
+                  placeholder="e.g. HDFC0001234"
+                />
+              </div>
+              <div>
+                <label htmlFor="upi_id" className="block text-sm text-[#52796f] mb-1">UPI ID <span className="text-[#95d5b2]">(optional)</span></label>
+                <input
+                  type="text"
+                  id="upi_id"
+                  name="upi_id"
+                  value={formData.upi_id}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0]"
+                  placeholder="yourname@upi"
+                />
+              </div>
+            </div>
+          </div>
+
           {isEditing && (
             <div className="pt-4 border-t border-[#d8f3dc] flex justify-end gap-2">
               <button
@@ -219,6 +301,10 @@ export default function ProfilePage() {
                 onClick={() => {
                   setFormData({
                     phone: profile.phone || '',
+                    account_holder_name: profile.account_holder_name || '',
+                    account_number: profile.account_number || '',
+                    ifsc_code: profile.ifsc_code || '',
+                    upi_id: profile.upi_id || '',
                   });
                   setIsEditing(false);
                 }}
@@ -250,9 +336,23 @@ export default function ProfilePage() {
           <InfoRow icon={Mail} label="Email" value={profile.user.email} />
           <InfoRow icon={Phone} label="Phone" value={profile.phone || 'Not set'} />
         </div>
+
+        <h3 className="text-lg font-semibold text-[#1a2e1a] mt-6 mb-4">Payout Bank Details</h3>
+        <div className="space-y-3">
+          <InfoRow icon={User} label="Account Holder" value={profile.account_holder_name || 'Not set'} />
+          <InfoRow icon={Landmark} label="Account Number" value={maskAccountNumber(profile.account_number)} />
+          <InfoRow icon={Landmark} label="IFSC Code" value={profile.ifsc_code || 'Not set'} />
+          <InfoRow icon={Phone} label="UPI ID" value={profile.upi_id || 'Not set'} />
+        </div>
       </div>
     </div>
   );
+}
+
+function maskAccountNumber(value?: string | null): string {
+  if (!value) return 'Not set';
+  if (value.length <= 4) return value;
+  return `••••${value.slice(-4)}`;
 }
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {

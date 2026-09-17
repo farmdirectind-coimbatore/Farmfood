@@ -47,15 +47,19 @@ model User {
 }
 
 model Profile {
-  id          String   @id @default(cuid())
-  userId      String   @unique @map("user_id")
-  phone       String?
-  address     String?
-  panNumber   String?  @map("pan_number")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(cuid())
+  userId             String   @unique @map("user_id")
+  phone              String?
+  address            String?
+  panNumber          String?  @map("pan_number")
+  accountHolderName  String?  @map("account_holder_name")
+  accountNumber      String?  @map("account_number")
+  ifscCode           String?  @map("ifsc_code")
+  upiId              String?  @map("upi_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("profiles")
 }

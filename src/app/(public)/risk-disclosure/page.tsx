@@ -42,7 +42,7 @@ export default function RiskDisclosurePage() {
                 1. Nature of Investment
               </h2>
               <p>
-                When you purchase Shares in FarmDirect, you are acquiring a contractual right to receive a share of the farm&apos;s net revenue 
+                When you purchase Lots in FarmDirect, you are acquiring a contractual right to receive a share of the farm&apos;s net revenue 
                 as daily payouts for a defined period (249 weekdays). This is <strong>not</strong>:
               </p>
               <ul className="list-disc list-inside space-y-2 mt-3">

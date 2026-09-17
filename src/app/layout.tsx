@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     default: "FarmDirect - Fresh Farm Investment Platform",
     template: "%s | FarmDirect",
   },
-  description: "Invest in a real working farm in Coimbatore. 1 share = ₹10,000. Earn 1% daily returns on weekdays for 249 days from real farm revenue — produce, livestock, Kerala restaurant and agro-tourism.",
-  keywords: ["FarmDirect", "farm investment", "Coimbatore", "Tamil Nadu", "agro-tourism", "passive income", "farm revenue sharing", "Kerala restaurant"],
+  description: "Invest in a real working farm in Coimbatore. 1 lot = ₹10,000. Earn 1% daily returns on weekdays for 249 days from real farm revenue — produce, livestock, hut restaurant and agro-tourism.",
+  keywords: ["FarmDirect", "farm investment", "Coimbatore", "Tamil Nadu", "agro-tourism", "passive income", "farm revenue sharing", "hut restaurant"],
   authors: [{ name: "FarmDirect Team" }],
   icons: {
     icon: "/images/favicon.png",

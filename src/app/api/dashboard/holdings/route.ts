@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { adminClient } from '@/lib/supabase/admin';
-import { calculateHoldingProgress } from '@/lib/calculations/investment';
+import { INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,13 +32,23 @@ export async function GET(request: NextRequest) {
 
     const today = new Date();
     const processedHoldings = holdings?.map(holding => {
-      const progress = calculateHoldingProgress(holding, today);
+      const weekdaysPaid = holding.weekdays_paid || 0;
+      const totalPaid = Number(holding.total_paid || 0);
+      const totalProjectedReturn = Number(holding.total_projected_return);
+      const progress = {
+        weekdaysPaid,
+        amountReceived: totalPaid,
+        amountRemaining: Math.max(0, totalProjectedReturn - totalPaid),
+        daysLeft: Math.max(0, INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS - weekdaysPaid),
+        isComplete: holding.status === 'COMPLETED' || weekdaysPaid >= INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS,
+        progressPercent: Math.min(100, (weekdaysPaid / INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS) * 100),
+      };
       return {
         ...holding,
         amount_invested: Number(holding.amount_invested),
         daily_payout: Number(holding.daily_payout),
-        total_projected_return: Number(holding.total_projected_return),
-        total_paid: Number(holding.total_paid),
+        total_projected_return: totalProjectedReturn,
+        total_paid: totalPaid,
         progress,
       };
     }) || [];

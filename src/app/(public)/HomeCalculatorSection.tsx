@@ -19,7 +19,7 @@ export default function HomeCalculatorSection() {
             See Your Projected Returns
           </h2>
           <p className="text-[#52796f] text-base">
-            Adjust the number of shares to see exactly how much you would earn.
+            Adjust the number of lots to see exactly how much you would earn.
           </p>
         </div>
 
@@ -33,7 +33,7 @@ export default function HomeCalculatorSection() {
               href="/dashboard/buy-shares"
               className="inline-flex items-center gap-2 bg-[#2d6a4f] text-white font-semibold py-3.5 px-8 rounded-2xl shadow-md hover:bg-[#1a4d3a] hover:shadow-lg transition-all active:scale-[0.97]"
             >
-              Buy Shares Now
+              Buy Lots Now
               <ArrowRight className="w-5 h-5" />
             </Link>
           ) : (

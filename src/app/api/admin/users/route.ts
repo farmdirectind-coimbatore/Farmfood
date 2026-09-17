@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
         role,
         created_at,
         holdings:holdings(shares, amount_invested),
-        purchase_requests:purchase_requests!purchase_requests_user_id_fkey(status, shares)
+        purchase_requests:purchase_requests!purchase_requests_user_id_fkey(status, shares),
+        profile:profiles!profiles_user_id_fkey(phone, account_holder_name, account_number, ifsc_code, upi_id)
       `, { count: 'exact' });
 
     if (search) {
@@ -52,6 +53,8 @@ export async function GET(request: NextRequest) {
       const totalShares = u.holdings?.reduce((sum: number, h: any) => sum + h.shares, 0) || 0;
       const totalInvested = u.holdings?.reduce((sum: number, h: any) => sum + Number(h.amount_invested), 0) || 0;
       const pendingRequests = u.purchase_requests?.filter((pr: any) => pr.status === 'PENDING').length || 0;
+      const profileArr = (u.profile ?? []) as Array<{ phone: string | null; account_holder_name: string | null; account_number: string | null; ifsc_code: string | null; upi_id: string | null }> | null;
+      const profile = profileArr?.[0] ?? null;
 
       return {
         id: u.id,
@@ -61,6 +64,15 @@ export async function GET(request: NextRequest) {
         avatar_url: u.avatar_url,
         role: u.role,
         created_at: u.created_at,
+        profile: profile
+          ? {
+              phone: profile.phone,
+              account_holder_name: profile.account_holder_name,
+              account_number: profile.account_number,
+              ifsc_code: profile.ifsc_code,
+              upi_id: profile.upi_id,
+            }
+          : null,
         _stats: {
           total_shares: totalShares,
           total_invested: totalInvested,

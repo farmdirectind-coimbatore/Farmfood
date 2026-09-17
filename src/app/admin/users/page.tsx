@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, ChevronLeft, ChevronRight, Loader2, Users } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Loader2, Users, Phone, Landmark, BadgeInfo } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatINR } from '@/lib/utils/currency';
 
@@ -15,6 +15,13 @@ interface AdminUser {
   avatar_url: string | null;
   role: 'ADMIN' | 'USER';
   created_at: string;
+  profile: {
+    phone: string | null;
+    account_holder_name: string | null;
+    account_number: string | null;
+    ifsc_code: string | null;
+    upi_id: string | null;
+  } | null;
   _stats: {
     total_shares: number;
     total_invested: number;
@@ -47,6 +54,7 @@ export default function AdminUsersPage() {
   const [role, setRole] = useState('all');
   const [sort, setSort] = useState('newest');
   const [searchInput, setSearchInput] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminUsers', page, search, role, sort],
@@ -143,11 +151,13 @@ export default function AdminUsersPage() {
                   <th className="px-4 py-3 text-right text-sm font-semibold text-[#52796f]">Invested</th>
                   <th className="px-4 py-3 text-center text-sm font-semibold text-[#52796f]">Pending</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-[#52796f]">Joined</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-[#52796f]"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#d8f3dc]">
                 {data.users.map(user => (
-                  <tr key={user.id} className="hover:bg-[#fafdf7] transition-colors">
+                  <Fragment key={user.id}>
+                  <tr className="hover:bg-[#fafdf7] transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-[#d8f3dc] overflow-hidden flex-shrink-0">
@@ -190,7 +200,32 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 text-sm text-[#52796f]">
                       {format(new Date(user.created_at), 'dd MMM yyyy')}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => setExpandedId(expandedId === user.id ? null : user.id)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#f0f7f0] text-[#2d6a4f] text-xs font-semibold rounded-lg hover:bg-[#d8f3dc] transition-colors"
+                      >
+                        {expandedId === user.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        Details
+                      </button>
+                    </td>
                   </tr>
+                  {expandedId === user.id && (
+                    <tr className="bg-[#fafdf7]">
+                      <td colSpan={7} className="px-4 py-4">
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <DetailBox icon={Phone} label="Phone" value={user.profile?.phone || 'Not set'} />
+                          <DetailBox icon={Landmark} label="Account Holder" value={user.profile?.account_holder_name || 'Not set'} />
+                          <DetailBox icon={Landmark} label="Account Number" value={maskAccountNumber(user.profile?.account_number)} />
+                          <DetailBox icon={BadgeInfo} label="IFSC Code" value={user.profile?.ifsc_code || 'Not set'} />
+                          <DetailBox icon={BadgeInfo} label="UPI ID" value={user.profile?.upi_id || 'Not set'} />
+                          <DetailBox icon={Users} label="Total Shares" value={String(user._stats.total_shares)} />
+                          <DetailBox icon={Users} label="Total Invested" value={formatINR(user._stats.total_invested)} />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -222,6 +257,25 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
+    </div>
+);
+}
+
+function maskAccountNumber(value?: string | null): string {
+  if (!value) return 'Not set';
+  return `••••${value.slice(-4)}`;
+}
+
+function DetailBox({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-[#d8f3dc]">
+      <div className="w-9 h-9 rounded-lg bg-[#d8f3dc] flex items-center justify-center flex-shrink-0">
+        <Icon className="w-4 h-4 text-[#2d6a4f]" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] text-[#52796f]">{label}</p>
+        <p className="text-sm font-medium text-[#1a2e1a] truncate" title={value}>{value}</p>
+      </div>
     </div>
   );
 }

@@ -37,9 +37,25 @@ export async function POST(request: NextRequest) {
 
     const results: { payoutId: string; success: boolean; isComplete: boolean }[] = [];
 
+    // Track running counters per holding so multiple pending payouts for the
+    // same holding (multi-day catch-up) accumulate correctly in one batch.
+    const holdingState = new Map<string, { weekdaysPaid: number; totalPaid: number }>();
     for (const payout of payouts) {
-      const newWeekdaysPaid = payout.weekdays_paid;
-      const newTotalPaid = Number(payout.running_total);
+      if (!holdingState.has(payout.holding_id)) {
+        holdingState.set(payout.holding_id, {
+          weekdaysPaid: payout.holding.weekdays_paid || 0,
+          totalPaid: Number(payout.holding.total_paid || 0),
+        });
+      }
+    }
+
+    for (const payout of payouts) {
+      const state = holdingState.get(payout.holding_id)!;
+      state.weekdaysPaid += 1;
+      state.totalPaid += Number(payout.amount);
+
+      const newWeekdaysPaid = state.weekdaysPaid;
+      const newTotalPaid = state.totalPaid;
       const isComplete = newWeekdaysPaid >= INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS;
 
       // Update payout

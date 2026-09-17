@@ -25,7 +25,7 @@ export default function PrivacyPage() {
               <ul className="list-disc list-inside space-y-2 mt-2">
                 <li><strong>Account Information:</strong> Name, email address (from Google OAuth), profile picture</li>
                 <li><strong>Profile Information:</strong> Phone number, address, PAN number (optional, for KYC)</li>
-                <li><strong>Transaction Information:</strong> Share purchases, payment proofs, payout history</li>
+                <li><strong>Transaction Information:</strong> Lot purchases, payment proofs, payout history</li>
                 <li><strong>Communication:</strong> Emails, support requests, feedback</li>
               </ul>
             </section>
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
               <h2 className="text-xl font-bold text-[#1a2e1a] mb-3">2. How We Use Your Information</h2>
               <ul className="list-disc list-inside space-y-2 mt-2">
                 <li>Create and manage your investment account</li>
-                <li>Process share purchases and verify payments</li>
+                <li>Process lot purchases and verify payments</li>
                 <li>Calculate and distribute daily payouts</li>
                 <li>Send transactional emails (confirmations, notifications, statements)</li>
                 <li>Comply with legal and regulatory requirements (KYC, anti-money laundering)</li>

@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Payout already marked as paid' }, { status: 400 });
     }
 
-    const newWeekdaysPaid = payout.weekdays_paid;
-    const newTotalPaid = Number(payout.running_total);
+    const newWeekdaysPaid = (payout.holding.weekdays_paid || 0) + 1;
+    const newTotalPaid = Number(payout.holding.total_paid || 0) + Number(payout.amount);
     const isComplete = newWeekdaysPaid >= INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS;
 
     // Update payout

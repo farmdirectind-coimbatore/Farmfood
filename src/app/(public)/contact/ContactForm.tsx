@@ -98,7 +98,7 @@ export default function ContactForm() {
             <div className="bg-[#f0f7f0] rounded-2xl p-5 border border-[#d8f3dc] text-center mt-2">
               <MapPin className="w-10 h-10 text-[#2d6a4f] mx-auto mb-3" />
               <p className="text-[#52796f] text-sm mb-4">
-                Experience the farm firsthand — walk the fields, meet the animals, and enjoy a traditional Kerala meal.
+                Experience the farm firsthand — walk the fields, meet the animals, and enjoy a traditional meal.
               </p>
               <Link
                 href="mailto:farmdirect.ind@gmail.com?subject=Farm%20Visit%20Booking&body=I%20would%20like%20to%20book%20a%20visit%20to%20FarmDirect.%20Please%20let%20me%20know%20available%20dates%20and%20details."

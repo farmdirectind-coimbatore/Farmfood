@@ -31,18 +31,18 @@ export default function TermsPage() {
               <h2 className="text-xl font-bold text-[#1a2e1a] mb-3">2. Description of Service</h2>
               <p>
                 FarmDirect operates a working farm in Coimbatore, Tamil Nadu, combining agriculture, livestock, hospitality, and agro-tourism. 
-                The Platform allows individuals to purchase shares in the farm&apos;s revenue (&quot;Shares&quot;). 
-                Each Share represents a contractual right to receive a portion of the farm&apos;s net revenue as daily payouts.
+                The Platform allows individuals to purchase lots in the farm&apos;s revenue (&quot;Lots&quot;). 
+                Each Lot represents a contractual right to receive a portion of the farm&apos;s net revenue as daily payouts.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-bold text-[#1a2e1a] mb-3">3. Investment Terms</h2>
               <ul className="list-disc list-inside space-y-2">
-                <li>1 Share = ₹10,000 (Indian Rupees Ten Thousand)</li>
+                <li>1 Lot = ₹10,000 (Indian Rupees Ten Thousand)</li>
                 <li>Daily payout: 1% of invested amount per weekday (Monday–Friday)</li>
                 <li>Payout period: 249 weekdays (approximately one calendar year)</li>
-                <li>Total projected return per Share: ₹24,900 over the full cycle</li>
+                <li>Total projected return per Lot: ₹24,900 over the full cycle</li>
                 <li>Minimum withdrawal: ₹100 from accumulated wallet balance</li>
               </ul>
             </section>
@@ -50,7 +50,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-xl font-bold text-[#1a2e1a] mb-3">4. Purchase Process</h2>
               <ol className="list-decimal list-inside space-y-2">
-                <li>Select number of Shares using the calculator</li>
+                <li>Select number of Lots using the calculator</li>
                 <li>Transfer funds to the designated bank account</li>
                 <li>Upload screenshot of payment proof</li>
                 <li>Wait for verification (typically within 24 hours)</li>
@@ -90,7 +90,7 @@ export default function TermsPage() {
               <h2 className="text-xl font-bold text-[#1a2e1a] mb-3">8. Limitation of Liability</h2>
               <p>
                 FarmDirect shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Platform 
-                or investment in Shares. Our maximum liability shall not exceed the amount you have invested.
+                or investment in Lots. Our maximum liability shall not exceed the amount you have invested.
               </p>
             </section>
 

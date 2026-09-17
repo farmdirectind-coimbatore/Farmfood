@@ -10,7 +10,7 @@ import HomeCalculatorSection from './HomeCalculatorSection';
 
 export const metadata: Metadata = {
   title: 'FarmDirect - Fresh Farm Investment Platform',
-  description: 'Invest in a real working farm in Coimbatore. 1 share = ₹10,000. Earn 1% daily returns on weekdays for 249 days. Farm produce, livestock, Kerala-style restaurant, and agro-tourism.',
+  description: 'Invest in a real working farm in Coimbatore. 1 lot = ₹10,000. Earn 1% daily returns on weekdays for 249 days. Farm produce, livestock, hut restaurant, and agro-tourism.',
 };
 
 const revenueStreams = [
@@ -40,8 +40,8 @@ const revenueStreams = [
   },
   {
     icon: Utensils,
-    title: 'Kerala-Style Hut Restaurant',
-    desc: 'Authentic Kerala cuisine served in an old-style hut setting — farm-fresh ingredients cooked the traditional way.',
+    title: 'Old-Styled Hut Restaurant',
+    desc: 'Authentic cuisine served in an old-style hut setting — farm-fresh ingredients cooked the traditional way.',
     image: '/images/kera-style hut restaurant.png',
   },
   {
@@ -108,7 +108,7 @@ export default function HomePage() {
           <div className="mt-12 inline-flex items-center gap-5 bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-3 border border-white/15 text-sm">
             <div className="text-center">
               <span className="block font-bold text-white">₹10k</span>
-              <span className="text-white/60">per share</span>
+              <span className="text-white/60">per lot</span>
             </div>
             <div className="w-px h-6 bg-white/20" />
             <div className="text-center">
@@ -191,7 +191,7 @@ export default function HomePage() {
               <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-4">
                 <Package className="w-7 h-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-1">₹10,000 per Share</h3>
+              <h3 className="text-xl font-bold text-white mb-1">₹10,000 per Lot</h3>
               <p className="text-white/70 text-sm">Buy 1 or more. No upper limit.</p>
             </div>
 
@@ -200,7 +200,7 @@ export default function HomePage() {
                 <Sunrise className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-xl font-bold text-white mb-1">1% Daily Return</h3>
-              <p className="text-white/70 text-sm">₹100/day per share on weekdays (Mon–Fri)</p>
+              <p className="text-white/70 text-sm">₹100/day per lot on weekdays (Mon–Fri)</p>
             </div>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/15 text-center">
@@ -236,15 +236,15 @@ export default function HomePage() {
                 See Your Investment in Person
               </h2>
               <p className="text-[#52796f] text-base sm:text-lg leading-relaxed mb-7">
-                Walk the land, see the crops, meet the animals, and enjoy a Kerala-style meal at our hut restaurant. 
+                Walk the land, see the crops, meet the animals, and enjoy a traditional meal at our hut restaurant. 
                 The best way to understand what your money supports.
               </p>
 
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: MapPin, label: 'Coimbatore, Tamil Nadu', sub: 'Exact address shared after booking' },
+                  { icon: MapPin, label: 'Coimbatore, Tamil Nadu' },
                   { icon: Sunrise, label: 'Weekends 9 AM – 6 PM', sub: 'Weekdays by appointment' },
-                  { icon: Coffee, label: 'Farm walk · Animal feeding · Kerala lunch', sub: 'All included in your visit' },
+                  { icon: Coffee, label: 'Farm walk · Animal feeding · Traditional lunch', sub: 'All included in your visit' },
                 ].map((row, i) => (
                   <div key={i} className="flex items-start gap-3.5">
                     <div className="w-11 h-11 rounded-xl bg-[#d8f3dc] flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -252,7 +252,7 @@ export default function HomePage() {
                     </div>
                     <div>
                       <p className="font-semibold text-[#1a2e1a] text-sm">{row.label}</p>
-                      <p className="text-[#52796f] text-xs mt-0.5">{row.sub}</p>
+                      {row.sub && <p className="text-[#52796f] text-xs mt-0.5">{row.sub}</p>}
                     </div>
                   </div>
                 ))}
@@ -284,7 +284,7 @@ export default function HomePage() {
             Ready to Own a Piece of the Farm?
           </h2>
           <p className="text-[#52796f] text-base sm:text-lg max-w-xl mx-auto mb-8">
-            Join hundreds of investors who earn daily returns from real farm revenue. Start with just one share — ₹10,000.
+            Join hundreds of investors who earn daily returns from real farm revenue. Start with just one lot — ₹10,000.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
