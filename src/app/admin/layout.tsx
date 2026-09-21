@@ -25,6 +25,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     router.refresh();
   };
 
+  // Login page is standalone — no header/sidebar chrome
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-[#f5f5f0]">
       <header className="bg-[#1a2e1a] border-b border-white/10 sticky top-0 z-40">

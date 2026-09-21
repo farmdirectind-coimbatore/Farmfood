@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
 
     // ── Aggregate stats ──────────────────────────────────────────────
     const investorUsers = users?.filter(u => u.role === 'USER') || [];
-    const totalUsers = users?.length || 0;
+    const totalUsers = investorUsers.length;
     const verifiedUsers = investorUsers.length;
 
     const totalLots = holdings?.reduce((sum, h) => sum + (h.shares || 0), 0) || 0;

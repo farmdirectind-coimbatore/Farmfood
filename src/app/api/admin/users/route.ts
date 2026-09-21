@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
         holdings:holdings(shares, amount_invested),
         purchase_requests:purchase_requests!purchase_requests_user_id_fkey(status, shares),
         profile:profiles!profiles_user_id_fkey(phone, account_holder_name, account_number, ifsc_code, upi_id)
-      `, { count: 'exact' });
+      `, { count: 'exact' })
+      .neq('role', 'ADMIN');
 
     if (search) {
       query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
