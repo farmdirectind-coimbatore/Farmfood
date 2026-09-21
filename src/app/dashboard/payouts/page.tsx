@@ -15,7 +15,7 @@ interface Payout {
   weekdays_paid: number;
   marked_at: string | null;
   holding: {
-    shares: number;
+    lots: number;
     amount_invested: number;
   } | null;
 }
@@ -161,7 +161,7 @@ export default function PayoutsPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-[#1a2e1a]">
                         <div className="font-medium">
-                          {holding ? `${holding.shares} Share${holding.shares > 1 ? 's' : ''}` : '—'}
+                          {holding ? `${holding.lots} Lot${holding.lots > 1 ? 's' : ''}` : '—'}
                         </div>
                         <div className="text-xs text-[#52796f]">
                           {holding ? `${formatINR(holding.amount_invested)} invested` : ''}

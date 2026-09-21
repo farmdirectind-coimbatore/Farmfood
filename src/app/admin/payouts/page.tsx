@@ -1,8 +1,9 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, CheckCircle2, Loader2, Users, TrendingUp, BadgeCheck } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Loader2, Users, TrendingUp, BadgeCheck, History, Clock, CheckCheck, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { useState } from 'react';
 import { formatINR } from '@/lib/utils/currency';
 import { normalizeProfile } from '@/lib/utils/profile';
 
@@ -11,7 +12,7 @@ interface PayoutItem {
   holding_id: string;
   holding: {
     id: string;
-    shares: number;
+    lots: number;
     amount_invested: number;
     daily_payout: number;
     weekdays_paid: number;
@@ -59,6 +60,38 @@ async function fetchToday(): Promise<TodayPayoutResponse> {
   return res.json();
 }
 
+interface PayoutHistoryItem {
+  id: string;
+  holding_id: string;
+  user_id: string;
+  user: { id: string; name: string | null; email: string } | null;
+  holding: { lots: number; amount_invested: number } | null;
+  amount: number;
+  running_total: number;
+  payout_date: string;
+  marked_by: string | null;
+  marked_at: string | null;
+  weekdays_paid: number;
+  status: 'paid' | 'pending';
+}
+
+interface PayoutHistoryResponse {
+  payouts: PayoutHistoryItem[];
+  summary: {
+    all: number;
+    paid: number;
+    pending: number;
+    paidAmount: number;
+    pendingAmount: number;
+  };
+}
+
+async function fetchHistory(filter: string): Promise<PayoutHistoryResponse> {
+  const res = await fetch(`/api/admin/payouts/history?status=${filter}`);
+  if (!res.ok) throw new Error('Failed to load payout history');
+  return res.json();
+}
+
 export default function AdminPayoutsPage() {
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
@@ -96,7 +129,14 @@ export default function AdminPayoutsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminPayoutsToday'] });
       queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      queryClient.invalidateQueries({ queryKey: ['adminPayoutHistory'] });
     },
+  });
+
+  const [historyFilter, setHistoryFilter] = useState('all');
+  const historyQuery = useQuery({
+    queryKey: ['adminPayoutHistory', historyFilter],
+    queryFn: () => fetchHistory(historyFilter),
   });
 
   if (isLoading) {
@@ -151,7 +191,7 @@ export default function AdminPayoutsPage() {
         <SummaryBox
           label="Total Today"
           value={formatINR(data.pending.length + data.paid.length ? (data.pending.reduce((s, p) => s + p.amount, 0) + data.paid.reduce((s, p) => s + p.amount, 0)) : 0)}
-          count={`${data.pending.length + data.paid.length} active holdings`}
+          count={`${data.pending.length + data.paid.length} payout${data.pending.length + data.paid.length === 1 ? '' : 's'} today`}
           icon={TrendingUp}
           color="bg-[#d8f3dc] text-[#2d6a4f]"
         />
@@ -193,7 +233,7 @@ export default function AdminPayoutsPage() {
                       <div>
                         <p className="font-medium text-[#1a2e1a]">{holding?.user.name || holding?.user.email}</p>
                         <p className="text-xs text-[#52796f]">
-                          {holding ? `${holding.shares} share${holding.shares > 1 ? 's' : ''} · weekday #${Math.max(1, (holding.weekdays_paid || 0) + 1)} · ${holding.user.email}` : ''}
+                          {holding ? `${holding.lots} lot${holding.lots > 1 ? 's' : ''} · weekday #${Math.max(1, (holding.weekdays_paid || 0) + 1)} · ${holding.user.email}` : ''}
                         </p>
                       </div>
                     </div>
@@ -283,7 +323,7 @@ export default function AdminPayoutsPage() {
                     <div>
                       <p className="font-medium text-[#1a2e1a]">{holding?.user.name || holding?.user.email}</p>
                       <p className="text-xs text-[#52796f]">
-                        {holding ? `${holding.shares} share${holding.shares > 1 ? 's' : ''} · weekday #${holding.weekdays_paid + 1}` : ''}
+                        {holding ? `${holding.lots} lot${holding.lots > 1 ? 's' : ''} · weekday #${holding.weekdays_paid + 1}` : ''}
                       </p>
                     </div>
                   </div>
@@ -311,7 +351,7 @@ export default function AdminPayoutsPage() {
                   <div>
                     <p className="font-medium text-[#1a2e1a]">{item.holding?.user.name || item.holding?.user.email}</p>
                     <p className="text-xs text-[#52796f]">
-                      {item.holding ? `${item.holding.shares} share${item.holding.shares > 1 ? 's' : ''}` : ''} · full cycle completed
+                      {item.holding ? `${item.holding.lots} lot${item.holding.lots > 1 ? 's' : ''}` : ''} · full cycle completed
                     </p>
                   </div>
                 </div>
@@ -324,7 +364,103 @@ export default function AdminPayoutsPage() {
           </div>
         </Section>
       )}
+
+      {/* All-Time Payout History */}
+      <div className="bg-white rounded-2xl border border-[#d8f3dc] overflow-hidden">
+        <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-4 bg-[#f0f7f0] border-b border-[#d8f3dc]">
+          <h2 className="font-bold text-[#1a2e1a] text-base flex items-center gap-2">
+            <History className="w-5 h-5 text-[#2d6a4f]" />
+            Payout History (All Time)
+          </h2>
+          <div className="flex items-center gap-2">
+            <FilterButton active={historyFilter === 'all'} onClick={() => setHistoryFilter('all')}>
+              All
+            </FilterButton>
+            <FilterButton active={historyFilter === 'paid'} onClick={() => setHistoryFilter('paid')}>
+              Paid
+            </FilterButton>
+            <FilterButton active={historyFilter === 'pending'} onClick={() => setHistoryFilter('pending')}>
+              Pending
+            </FilterButton>
+          </div>
+        </div>
+
+        {historyQuery.isLoading ? (
+          <div className="p-8 text-center">
+            <Loader2 className="w-8 h-8 text-[#2d6a4f] animate-spin mx-auto mb-3" />
+            <p className="text-sm text-[#52796f]">Loading history...</p>
+          </div>
+        ) : historyQuery.isError || !historyQuery.data ? (
+          <div className="p-8 text-center">
+            <p className="text-sm text-[#dc2626]">Failed to load payout history.</p>
+          </div>
+        ) : (
+          <>
+            <div className="px-5 py-3 border-b border-[#d8f3dc] flex items-center gap-5 flex-wrap text-sm bg-[#fafdf7]">
+              <span className="text-[#52796f]">Total generated: <strong className="text-[#1a2e1a]">{historyQuery.data.summary.all}</strong></span>
+              <span className="flex items-center gap-1 text-[#52796f]">
+                <CheckCheck className="w-4 h-4 text-[#166534]" />
+                Paid: <strong className="text-[#166534]">{historyQuery.data.summary.paid}</strong>
+              </span>
+              <span className="flex items-center gap-1 text-[#52796f]">
+                <Clock className="w-4 h-4 text-[#92400e]" />
+                Pending: <strong className="text-[#92400e]">{historyQuery.data.summary.pending}</strong>
+              </span>
+              <span className="ml-auto text-[#52796f]">
+                Paid value: <strong className="text-[#166534]">{formatINR(historyQuery.data.summary.paidAmount)}</strong>
+              </span>
+            </div>
+            {historyQuery.data.payouts.length === 0 ? (
+              <div className="p-8 text-center">
+                <TrendingUp className="w-10 h-10 text-[#95d5b2] mx-auto mb-3" />
+                <p className="text-[#52796f] text-sm">No payouts match this filter.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#d8f3dc]">
+                {historyQuery.data.payouts.map(item => (
+                  <div key={item.id} className="flex items-center justify-between flex-wrap gap-3 px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${item.status === 'paid' ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'}`}>
+                        {item.user?.name?.[0]?.toUpperCase() ?? item.user?.email[0]?.toUpperCase() ?? 'U'}
+                      </div>
+                      <div>
+                        <p className="font-medium text-[#1a2e1a]">{item.user?.name || item.user?.email}</p>
+                        <p className="text-xs text-[#52796f]">
+                          {format(new Date(item.payout_date), 'dd MMM yyyy')}
+                          {item.holding ? ` · ${item.holding.lots} lot${item.holding.lots > 1 ? 's' : ''}` : ''}
+                          {item.marked_at ? ` · paid at ${format(new Date(item.marked_at), 'h:mm a')}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="font-bold text-[#1a2e1a]">{formatINR(item.amount)}</p>
+                        <p className="text-xs text-[#95d5b2]">running total {formatINR(item.running_total)}</p>
+                      </div>
+                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'paid' ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'}`}>
+                        {item.status === 'paid' ? <CheckCheck className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                        {item.status === 'paid' ? 'Paid' : 'Pending'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
+  );
+}
+
+function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${active ? 'bg-[#2d6a4f] text-white' : 'bg-white text-[#52796f] border border-[#d8f3dc] hover:bg-[#f0f7f0]'}`}
+    >
+      {children}
+    </button>
   );
 }
 

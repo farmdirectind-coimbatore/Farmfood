@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import {
   Leaf, Fish, Coffee, MapPin, Users, Utensils,
   TreePine, Factory, Package, Sunrise, ArrowRight,
@@ -150,12 +151,15 @@ export default function HomePage() {
                   i === revenueStreams.length - 1 && revenueStreams.length % 3 === 1 ? 'sm:col-span-2 lg:col-span-1' : ''
                 }`}
               >
-                <div className="aspect-[16/10] overflow-hidden">
-                  <img
+                <div className="aspect-[16/10] overflow-hidden relative">
+                  <Image
                     src={item.image}
                     alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
                   />
                 </div>
                 <div className="p-5">
@@ -260,11 +264,15 @@ export default function HomePage() {
               </div>
 
               <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
-              <img
+              <Image
                 src="/images/expansion-bg.jpg"
                 alt="Farm landscape"
-                className="w-full h-full object-cover"
-                loading="lazy"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                placeholder="blur"
+                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+                priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               <div className="absolute bottom-5 left-5 right-5 text-white">

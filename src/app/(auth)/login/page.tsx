@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Loader2, Leaf } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -61,7 +62,14 @@ function LoginContent() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block mb-5">
-              <img src="/images/logo.png" alt="FarmDirect Logo" className="h-14 w-auto mx-auto" />
+              <Image
+                src="/images/logo.png"
+                alt="FarmDirect Logo"
+                width={168}
+                height={56}
+                className="mx-auto"
+                priority
+              />
             </Link>
             <h1 className="font-display text-3xl font-bold text-white">Welcome Back</h1>
             <p className="text-white/70 mt-2 text-sm">Sign in to access your farm investment dashboard</p>

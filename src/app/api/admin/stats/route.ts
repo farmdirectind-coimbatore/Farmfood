@@ -13,11 +13,11 @@ export async function GET(request: NextRequest) {
     // Fetch all users
     const { data: users, error: usersError } = await adminClient
       .from('users')
-      .select('id, role, created_at');
+      .select('id, email, name, role, created_at');
 
     if (usersError) throw usersError;
 
-    // Fetch purchase requests
+    // Fetch pending purchase requests
     const { data: purchaseRequests, error: prError } = await adminClient
       .from('purchase_requests')
       .select('id, status, user_id, shares, amount')
@@ -32,6 +32,13 @@ export async function GET(request: NextRequest) {
 
     if (holdingsError) throw holdingsError;
 
+    // Fetch all payouts
+    const { data: allPayouts, error: payoutsError } = await adminClient
+      .from('payouts')
+      .select('id, holding_id, user_id, amount, running_total, marked_by, marked_at, payout_date');
+
+    if (payoutsError) throw payoutsError;
+
     // Today's payouts (only rows actually due today, i.e. past the 6 AM batch)
     const now = new Date();
     const today = new Date();
@@ -40,13 +47,13 @@ export async function GET(request: NextRequest) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const isWeekday = today.getDay() !== 0 && today.getDay() !== 6;
 
-    const { data: todaysPayouts, error: payoutsError } = await adminClient
+    const { data: todaysPayouts, error: todaysPayoutsError } = await adminClient
       .from('payouts')
       .select('id, holding_id, marked_by')
       .gte('payout_date', today.toISOString())
       .lt('payout_date', tomorrow.toISOString());
 
-    if (payoutsError) throw payoutsError;
+    if (todaysPayoutsError) throw todaysPayoutsError;
 
     const markedToday = new Set(todaysPayouts?.filter(p => p.marked_by).map(p => p.holding_id) ?? []);
 
@@ -80,12 +87,20 @@ export async function GET(request: NextRequest) {
 
     const todaysPayoutCount = paidToday + pendingToday;
 
-    // Calculate stats
+    // ── Aggregate stats ──────────────────────────────────────────────
+    const investorUsers = users?.filter(u => u.role === 'USER') || [];
     const totalUsers = users?.length || 0;
-    const verifiedUsers = users?.filter(u => u.role === 'USER').length || 0;
+    const verifiedUsers = investorUsers.length;
 
-    const totalShares = holdings?.reduce((sum, h) => sum + h.shares, 0) || 0;
+    const totalLots = holdings?.reduce((sum, h) => sum + (h.shares || 0), 0) || 0;
     const totalInvested = holdings?.reduce((sum, h) => sum + Number(h.amount_invested), 0) || 0;
+    const totalProjectedReturn = holdings?.reduce((sum, h) => sum + Number(h.total_projected_return), 0) || 0;
+
+    const markedPayouts = (allPayouts || []).filter(p => p.marked_by);
+    const pendingPayouts = (allPayouts || []).filter(p => !p.marked_by);
+
+    const totalPaidOut = markedPayouts.reduce((sum, p) => sum + Number(p.amount), 0);
+    const totalPendingPayout = pendingPayouts.reduce((sum, p) => sum + Number(p.amount), 0);
 
     const pendingRequests = purchaseRequests?.length || 0;
 
@@ -96,16 +111,48 @@ export async function GET(request: NextRequest) {
       return progress.daysLeft > 0 && progress.daysLeft <= 10;
     }).length || 0;
 
+    // ── Per-user stats for the admin overview table ──────────────────
+    const userStats = investorUsers.map(u => {
+      const userHoldings = holdings?.filter(h => h.user_id === u.id) || [];
+      const holdingIds = new Set(userHoldings.map(h => h.id));
+      const userPayouts = (allPayouts || []).filter(p => holdingIds.has(p.holding_id));
+      const userMarked = userPayouts.filter(p => p.marked_by);
+      const userPending = userPayouts.filter(p => !p.marked_by);
+
+      return {
+        userId: u.id,
+        email: u.email,
+        name: u.name,
+        createdAt: u.created_at,
+        totalLots: userHoldings.reduce((sum, h) => sum + (h.shares || 0), 0),
+        totalInvested: userHoldings.reduce((sum, h) => sum + Number(h.amount_invested), 0),
+        totalReceived: userMarked.reduce((sum, p) => sum + Number(p.amount), 0),
+        pendingAmount: userPending.reduce((sum, p) => sum + Number(p.amount), 0),
+        totalProjected: userHoldings.reduce((sum, h) => sum + Number(h.total_projected_return), 0),
+        holdingsCount: userHoldings.length,
+        activeHoldings: userHoldings.filter(h => h.status === 'ACTIVE').length,
+        completedHoldings: userHoldings.filter(h => h.status === 'COMPLETED').length,
+        pendingRequests: (purchaseRequests || []).filter(pr => pr.user_id === u.id).length,
+      };
+    });
+
+    // Sort: highest invested first
+    userStats.sort((a, b) => b.totalInvested - a.totalInvested);
+
     return NextResponse.json({
       totalUsers,
       verifiedUsers,
-      totalShares,
+      totalLots,
       totalInvested,
+      totalPaidOut,
+      totalPendingPayout,
+      totalProjectedReturn,
       pendingRequests,
       todaysPayouts: todaysPayoutCount,
       paidToday,
       pendingToday,
       completingSoon,
+      userStats,
     });
   } catch (error) {
     console.error('Admin stats error:', error);

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Phone, MapPin } from 'lucide-react';
 
 const footerLinks = {
@@ -26,7 +27,12 @@ export default function PublicFooter() {
           {/* Brand column */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <img src="/images/logo.png" alt="FarmDirect" className="h-10 w-auto" />
+              <Image
+                src="/images/logo.png"
+                alt="FarmDirect"
+                width={120}
+                height={40}
+              />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed max-w-xs">
               A working farm in Coimbatore combining agriculture, livestock, hospitality, and agro-tourism — with revenue shared directly with our investors.

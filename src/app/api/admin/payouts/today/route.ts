@@ -89,10 +89,10 @@ export async function GET(request: NextRequest) {
 
         if (row.marked_by) {
           if (row.marked_at && row.marked_at >= todayStart) {
-            paidToday.push({ ...row, holding, amount: Number(row.amount), running_total: Number(row.running_total) });
+            paidToday.push({ ...row, holding: { ...holding, lots: Number(holding.shares) }, amount: Number(row.amount), running_total: Number(row.running_total) });
           }
         } else {
-          pending.push({ ...row, holding, amount: Number(row.amount), running_total: Number(row.running_total) });
+          pending.push({ ...row, holding: { ...holding, lots: Number(holding.shares) }, amount: Number(row.amount), running_total: Number(row.running_total) });
         }
       }
 
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
         nearingCompletion.push({
           id: `nearing-${holding.id}`,
           holding_id: holding.id,
-          holding,
+          holding: { ...holding, lots: Number(holding.shares) },
           amount: Number(holding.daily_payout),
           running_total: Number(holding.total_paid),
           weekdays_paid: holding.weekdays_paid,
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
     const completed = (completedHoldings || []).map(h => ({
       id: `completed-${h.id}`,
       holding_id: h.id,
-      holding: h,
+      holding: { ...h, lots: Number(h.shares) },
       amount: Number(h.daily_payout),
       running_total: Number(h.total_paid),
       weekdays_paid: h.weekdays_paid,

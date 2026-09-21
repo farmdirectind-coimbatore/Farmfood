@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { formatINR, formatNumber } from '@/lib/utils/currency';
 
 interface DashboardStats {
-  totalShares: number;
+  totalLots: number;
   totalInvested: number;
   dailyPayoutRate: number;
   weekdaysPaid: number;
@@ -16,7 +16,7 @@ interface DashboardStats {
   holdings: Holding[];
   latestPurchase: {
     id: string;
-    shares: number;
+    lots: number;
     amount: number;
     status: 'PENDING' | 'APPROVED' | 'REJECTED';
     rejection_reason: string | null;
@@ -27,7 +27,7 @@ interface DashboardStats {
 
 interface Holding {
   id: string;
-  shares: number;
+  lots: number;
   amount_invested: number;
   daily_payout: number;
   total_projected_return: number;
@@ -123,14 +123,14 @@ export default function DashboardHome() {
         <Wallet className="w-16 h-16 mx-auto mb-4 text-[#95d5b2]" />
         <h1 className="text-3xl font-bold mb-3">You are ready to invest</h1>
         <p className="text-white/80 max-w-md mx-auto mb-8">
-          Buy your first share and start earning 1% daily on weekdays. Each share costs ₹10,000.
+          Buy your first lot and start earning 1% daily on weekdays. Each lot costs ₹10,000.
         </p>
         <Link
-          href="/dashboard/buy-shares"
+          href="/dashboard/buy-lots"
           className="inline-flex items-center gap-2 bg-white text-[#2d6a4f] font-semibold py-3 px-8 rounded-2xl hover:shadow-lg transition-shadow"
         >
           <PlusCircle className="w-5 h-5" />
-          Buy Your First Share
+          Buy Your First Lot
         </Link>
       </div>
     </div>
@@ -152,7 +152,7 @@ function HoldingsDashboard({ data }: { data: DashboardStats }) {
       <div className="bg-white rounded-2xl p-6 border border-[#d8f3dc]">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-[#1a2e1a]">Your Holdings</h2>
-          <Link href="/dashboard/buy-shares" className="flex items-center gap-1 text-sm text-[#2d6a4f] font-semibold hover:underline">
+          <Link href="/dashboard/buy-lots" className="flex items-center gap-1 text-sm text-[#2d6a4f] font-semibold hover:underline">
             <PlusCircle className="w-4 h-4" />
             Buy More
           </Link>
@@ -163,7 +163,7 @@ function HoldingsDashboard({ data }: { data: DashboardStats }) {
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <div>
                   <p className="font-semibold text-[#1a2e1a]">
-                    {formatNumber(holding.shares)} Share{holding.shares > 1 ? 's' : ''}
+                    {formatNumber(holding.lots)} Lot{holding.lots > 1 ? 's' : ''}
                   </p>
                   <p className="text-xs text-[#52796f] mt-1">
                     {format(new Date(holding.start_date), 'dd MMM yyyy')} → {format(new Date(holding.end_date), 'dd MMM yyyy')}
@@ -200,7 +200,7 @@ function HoldingsDashboard({ data }: { data: DashboardStats }) {
 
 /* ─── Pending Review Card ──────────────────────────────────────── */
 
-function PendingReviewCard({ purchase }: { purchase: { shares: number; amount: number; created_at: string } }) {
+function PendingReviewCard({ purchase }: { purchase: { lots: number; amount: number; created_at: string } }) {
   return (
     <div className="bg-white rounded-2xl p-8 border border-[#fde68a] text-center max-w-lg mx-auto">
       <div className="w-16 h-16 bg-[#fef3c7] rounded-full flex items-center justify-center mx-auto mb-5">
@@ -208,7 +208,7 @@ function PendingReviewCard({ purchase }: { purchase: { shares: number; amount: n
       </div>
       <h2 className="text-2xl font-bold text-[#1a2e1a] mb-3">Payment Under Review</h2>
       <p className="text-[#52796f] text-sm mb-6 max-w-sm mx-auto">
-        Your payment for {purchase.shares} share{purchase.shares > 1 ? 's' : ''} ({formatINR(purchase.amount)}) submitted on{' '}
+        Your payment for {purchase.lots} lot{purchase.lots > 1 ? 's' : ''} ({formatINR(purchase.amount)}) submitted on{' '}
         {format(new Date(purchase.created_at), 'dd MMM yyyy')} is being verified by our team.
       </p>
       <div className="bg-[#f0f7f0] rounded-xl p-4 text-sm text-[#52796f] text-left mb-6">
@@ -231,7 +231,7 @@ function PendingReviewCard({ purchase }: { purchase: { shares: number; amount: n
 
 /* ─── Rejected Card ────────────────────────────────────────────── */
 
-function RejectedCard({ purchase }: { purchase: { shares: number; amount: number; rejection_reason: string | null; created_at: string } }) {
+function RejectedCard({ purchase }: { purchase: { lots: number; amount: number; rejection_reason: string | null; created_at: string } }) {
   return (
     <div className="bg-white rounded-2xl p-8 border border-[#fecaca] text-center max-w-lg mx-auto">
       <div className="w-16 h-16 bg-[#fef2f2] rounded-full flex items-center justify-center mx-auto mb-5">
@@ -239,7 +239,7 @@ function RejectedCard({ purchase }: { purchase: { shares: number; amount: number
       </div>
       <h2 className="text-2xl font-bold text-[#1a2e1a] mb-3">Payment Not Verified</h2>
       <p className="text-[#52796f] text-sm mb-4 max-w-sm mx-auto">
-        Your payment for {purchase.shares} share{purchase.shares > 1 ? 's' : ''} ({formatINR(purchase.amount)}) could not be verified.
+        Your payment for {purchase.lots} lot{purchase.lots > 1 ? 's' : ''} ({formatINR(purchase.amount)}) could not be verified.
       </p>
       {purchase.rejection_reason && (
         <div className="bg-[#fef2f2] rounded-xl p-4 text-sm text-[#991b1b] text-left mb-6 border border-[#fecaca]">
@@ -249,11 +249,11 @@ function RejectedCard({ purchase }: { purchase: { shares: number; amount: number
       )}
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
         <Link
-          href="/dashboard/buy-shares"
+          href="/dashboard/buy-lots"
           className="inline-flex items-center justify-center gap-2 bg-[#2d6a4f] text-white font-semibold py-3 px-6 rounded-2xl hover:bg-[#1a4d3a] transition-colors"
         >
           <PlusCircle className="w-5 h-5" />
-          Buy Shares Again
+          Buy Lots Again
         </Link>
         <a
           href="mailto:farmdirect.ind@gmail.com"

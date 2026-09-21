@@ -5,12 +5,12 @@ export function purchaseSubmittedEmail(userName: string, shares: number, amount:
     <h1 style="color: #1a2e1a; margin: 0 0 16px; font-size: 24px;">Payment Proof Received</h1>
     <p style="color: #52796f; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
       Hi ${userName},<br><br>
-      We've received your payment proof for <strong>${shares} share${shares > 1 ? 's' : ''}</strong> (₹${amount.toLocaleString('en-IN')}). 
+      We've received your payment proof for <strong>${shares} lot${shares > 1 ? 's' : ''}</strong> (₹${amount.toLocaleString('en-IN')}). 
       Our team will verify it shortly.
     </p>
     
     <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
-      ${infoRow('Shares Purchased', shares.toString())}
+      ${infoRow('Lots Purchased', shares.toString())}
       ${infoRow('Total Invested', `₹${amount.toLocaleString('en-IN')}`)}
       ${infoRow('Daily Payout (Weekdays)', `₹${dailyPayout.toLocaleString('en-IN')}`)}
       ${infoRow('Total Projected Return', `₹${totalProjectedReturn.toLocaleString('en-IN')}`)}
@@ -38,7 +38,7 @@ export function purchaseApprovedEmail(userName: string, shares: number, amount: 
     </p>
     
     <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
-      ${infoRow('Shares', shares.toString())}
+      ${infoRow('Lots', shares.toString())}
       ${infoRow('Total Invested', `₹${amount.toLocaleString('en-IN')}`)}
       ${infoRow('Daily Payout', `₹${dailyPayout.toLocaleString('en-IN')}`)}
       ${infoRow('Total Projected Return', `₹${totalProjectedReturn.toLocaleString('en-IN')}`)}
@@ -79,7 +79,7 @@ export function purchaseRejectedEmail(userName: string, shares: number, amount: 
     <h1 style="color: #1a2e1a; margin: 0 0 16px; font-size: 24px;">Payment Verification Update</h1>
     <p style="color: #52796f; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
       Hi ${userName},<br><br>
-      We've reviewed your payment proof for <strong>${shares} share${shares > 1 ? 's' : ''}</strong> (₹${amount.toLocaleString('en-IN')}) 
+      We've reviewed your payment proof for <strong>${shares} lot${shares > 1 ? 's' : ''}</strong> (₹${amount.toLocaleString('en-IN')}) 
       and unfortunately cannot approve it at this time.
     </p>
     
@@ -110,7 +110,7 @@ export function cycleCompletedEmail(userName: string, shares: number, totalInves
     </p>
     
     <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
-      ${infoRow('Shares Held', shares.toString())}
+      ${infoRow('Lots Held', shares.toString())}
       ${infoRow('Total Invested', `₹${totalInvested.toLocaleString('en-IN')}`)}
       ${infoRow('Total Received', `₹${totalReceived.toLocaleString('en-IN')}`)}
       ${infoRow('Net Profit', `₹${(totalReceived - totalInvested).toLocaleString('en-IN')}`)}
@@ -138,7 +138,7 @@ export function adminNewRequestEmail(userName: string, userEmail: string, shares
     <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
       ${infoRow('User', userName)}
       ${infoRow('Email', userEmail)}
-      ${infoRow('Shares', shares.toString())}
+      ${infoRow('Lots', shares.toString())}
       ${infoRow('Amount', `₹${amount.toLocaleString('en-IN')}`)}
     </table>
     
@@ -147,7 +147,7 @@ export function adminNewRequestEmail(userName: string, userEmail: string, shares
     </div>
   `;
   
-  return emailTemplate(content, `New purchase request: ${shares} shares from ${userName}`);
+  return emailTemplate(content, `New purchase request: ${shares} lot${shares > 1 ? 's' : ''} from ${userName}`);
 }
 
 export function weeklyDigestEmail(userName: string, payouts: Array<{ date: string; amount: number }>, totalThisWeek: number): string {
@@ -176,4 +176,68 @@ export function weeklyDigestEmail(userName: string, payouts: Array<{ date: strin
   `;
   
   return emailTemplate(content, `Weekly payout summary: ₹${totalThisWeek.toLocaleString('en-IN')}`);
+}
+
+export function welcomeEmail(userName: string): string {
+  const content = `
+    <h1 style="color: #1a2e1a; margin: 0 0 16px; font-size: 24px;">Welcome to FarmDirect!</h1>
+    <p style="color: #52796f; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+      Hi ${userName},<br><br>
+      Thank you for joining FarmDirect! We're excited to have you on board.
+    </p>
+    
+    <p style="color: #52796f; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+      FarmDirect lets you invest in sustainable farming and earn daily returns. Here's how it works:
+    </p>
+    
+    <ul style="color: #52796f; font-size: 16px; line-height: 2; margin: 0 0 24px; padding-left: 20px;">
+      <li><strong>1 Lot = ₹10,000</strong> - Invest in our vegetable farming operations</li>
+      <li><strong>1% Daily Return</strong> - Earn ₹100 per lot every weekday</li>
+      <li><strong>249 Weekdays</strong> - Payouts continue for approximately one year</li>
+      <li><strong>Total Projected Return</strong> - ₹24,900 per lot (149% return)</li>
+    </ul>
+    
+    <p style="color: #52796f; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+      To get started, please complete your profile setup with your name, phone number, and bank details for payouts.
+    </p>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      ${buttonStyle(`${process.env.NEXT_PUBLIC_APP_URL}/welcome`, 'Complete Your Setup')}
+    </div>
+    
+    <p style="color: #52796f; font-size: 14px; line-height: 1.6; margin: 24px 0 0;">
+      If you have any questions, feel free to reach out to us at <a href="mailto:farmdirect.ind@gmail.com" style="color: #2d6a4f;">farmdirect.ind@gmail.com</a>.
+    </p>
+  `;
+  
+  return emailTemplate(content, 'Welcome to FarmDirect - Start earning daily returns');
+}
+
+export function investmentConfirmationEmail(userName: string, shares: number, amount: number, dailyPayout: number, totalProjectedReturn: number): string {
+  const content = `
+    <h1 style="color: #1a2e1a; margin: 0 0 16px; font-size: 24px;">Investment Confirmed</h1>
+    <p style="color: #52796f; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+      Hi ${userName},<br><br>
+      Your investment has been confirmed! Here are the details:
+    </p>
+    
+    <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
+      ${infoRow('Lots Purchased', shares.toString())}
+      ${infoRow('Amount Invested', `₹${amount.toLocaleString('en-IN')}`)}
+      ${infoRow('Daily Payout (Weekdays)', `₹${dailyPayout.toLocaleString('en-IN')}`)}
+      ${infoRow('Total Projected Return', `₹${totalProjectedReturn.toLocaleString('en-IN')}`)}
+      ${infoRow('Payout Period', '249 weekdays (~1 year)')}
+      ${infoRow('First Payout', 'Next weekday after approval')}
+    </table>
+    
+    <p style="color: #52796f; font-size: 16px; line-height: 1.6; margin: 24px 0 0;">
+      Your daily payouts will begin on the next weekday after admin approval. You can track all payouts in your dashboard.
+    </p>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      ${buttonStyle(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`, 'View Dashboard')}
+    </div>
+  `;
+  
+  return emailTemplate(content, `Investment confirmed: ${shares} lot${shares > 1 ? 's' : ''} - ₹${amount.toLocaleString('en-IN')}`);
 }

@@ -1,0 +1,12 @@
+{
+  "imports": {
+    "@supabase/functions-js/edge-runtime.d.ts": "https://cdn.jsdelivr.net/npm/@supabase/functions-js@2/edge-runtime.d.ts",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
+    "./_shared/investment.ts": "./_shared/investment.ts"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}

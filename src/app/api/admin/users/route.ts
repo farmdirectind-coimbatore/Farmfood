@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       query = query.eq('role', role);
     }
 
-    const sortByShares = sort === 'shares' || sort === 'invested';
+    const sortByLots = sort === 'shares' || sort === 'lots' || sort === 'invested';
     const sortAsc = sort === 'oldest';
 
     query = query.order('created_at', { ascending: sortAsc });
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     // Process users with stats
     const processedUsers = users?.map(u => {
-      const totalShares = u.holdings?.reduce((sum: number, h: any) => sum + h.shares, 0) || 0;
+      const totalLots = u.holdings?.reduce((sum: number, h: any) => sum + (h.shares || 0), 0) || 0;
       const totalInvested = u.holdings?.reduce((sum: number, h: any) => sum + Number(h.amount_invested), 0) || 0;
       const pendingRequests = u.purchase_requests?.filter((pr: any) => pr.status === 'PENDING').length || 0;
       const profile = normalizeProfile(u.profile);
@@ -74,17 +74,17 @@ export async function GET(request: NextRequest) {
             }
           : null,
         _stats: {
-          total_shares: totalShares,
+          total_lots: totalLots,
           total_invested: totalInvested,
           pending_requests: pendingRequests,
         },
       };
     }) || [];
 
-    // Sort by shares/invested after stats are computed, then paginate in JS
+    // Sort by lots/invested after stats are computed, then paginate in JS
     let pageUsers = processedUsers;
-    if (sortByShares) {
-      const key = sort === 'shares' ? 'total_shares' : 'total_invested';
+    if (sortByLots) {
+      const key = sort === 'shares' || sort === 'lots' ? 'total_lots' : 'total_invested';
       pageUsers = [...processedUsers].sort((a, b) => b._stats[key] - a._stats[key]);
     }
     const slicedUsers = pageUsers.slice((page - 1) * pageSize, page * pageSize);

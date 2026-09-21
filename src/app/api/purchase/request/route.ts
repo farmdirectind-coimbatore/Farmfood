@@ -27,12 +27,12 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const shares = parseInt(formData.get('shares') as string, 10);
+    const lots = parseInt((formData.get('lots') ?? formData.get('shares')) as string, 10);
     const screenshotFile = formData.get('screenshot') as File;
 
-    // Validate shares
-    if (!shares || shares < 1 || shares > INVESTMENT_CONSTANTS.MAX_SHARES_PER_USER) {
-      return NextResponse.json({ error: 'Invalid number of shares' }, { status: 400 });
+    // Validate lots
+    if (!lots || lots < 1 || lots > INVESTMENT_CONSTANTS.MAX_SHARES_PER_USER) {
+      return NextResponse.json({ error: 'Invalid number of lots' }, { status: 400 });
     }
 
     // Validate screenshot
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate investment
-    const investment = calculateInvestment(shares);
+    const investment = calculateInvestment(lots);
 
     // Upload screenshot to Supabase Storage
     const uploadResult = await getSignedUploadUrl(
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       .from('purchase_requests')
       .insert({
         user_id: userProfile.id,
-        shares,
+        shares: lots,
         amount: investment.totalInvested,
         daily_payout: investment.dailyPayout,
         total_projected_return: investment.totalProjectedReturn,
@@ -98,10 +98,10 @@ export async function POST(request: NextRequest) {
       user_id: userProfile.id,
       type: 'purchase_submitted',
       title: 'Payment Proof Submitted',
-      message: `We've received your payment proof for ${shares} share${shares > 1 ? 's' : ''} (${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(investment.totalInvested)}). Our team will verify it within 24 hours.`,
+      message: `We've received your payment proof for ${lots} lot${lots > 1 ? 's' : ''} (${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(investment.totalInvested)}). Our team will verify it within 24 hours.`,
       data: {
         purchase_request_id: purchaseRequest.id,
-        shares,
+        lots,
         amount: investment.totalInvested,
       },
     });
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       action: 'create_purchase_request',
       entity_type: 'purchase_request',
       entity_id: purchaseRequest.id,
-      new_data: { shares, amount: investment.totalInvested },
+      new_data: { lots, amount: investment.totalInvested },
     });
 
     // Send email to user
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       subject: 'Payment Proof Received - FarmDirect',
       html: purchaseSubmittedEmail(
         user.user_metadata?.full_name || 'Investor',
-        shares,
+        lots,
         investment.totalInvested,
         investment.dailyPayout,
         investment.totalProjectedReturn
@@ -131,11 +131,11 @@ export async function POST(request: NextRequest) {
     // Send email to admin
     await sendEmail({
       to: process.env.ADMIN_EMAILS || 'admin@farmdirect.ind',
-      subject: `New Purchase Request: ${shares} shares from ${user.email}`,
+      subject: `New Purchase Request: ${lots} lot${lots > 1 ? 's' : ''} from ${user.email}`,
       html: adminNewRequestEmail(
         user.user_metadata?.full_name || 'Investor',
         user.email!,
-        shares,
+        lots,
         investment.totalInvested
       ),
     });
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
       success: true, 
       purchaseRequest: {
         id: purchaseRequest.id,
-        shares: purchaseRequest.shares,
+        lots: purchaseRequest.shares,
         amount: investment.totalInvested,
         status: purchaseRequest.status,
       }

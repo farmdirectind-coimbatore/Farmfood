@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       user_id: payout.user_id,
       type: 'payout_credited',
       title: 'Daily Payout Credited',
-      message: `₹${Number(payout.amount).toLocaleString('en-IN')} has been credited to your wallet for holding ${payout.holding.shares} share${payout.holding.shares > 1 ? 's' : ''}. Total received: ₹${newTotalPaid.toLocaleString('en-IN')}.`,
+      message: `₹${Number(payout.amount).toLocaleString('en-IN')} has been credited to your wallet for holding ${payout.holding.shares} lot${payout.holding.shares > 1 ? 's' : ''}. Total received: ₹${newTotalPaid.toLocaleString('en-IN')}.`,
       data: {
         payout_id: payoutId,
         amount: Number(payout.amount),
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         user_id: payout.user_id,
         type: 'cycle_completed',
         title: 'Investment Cycle Completed',
-        message: `Congratulations! Your holding of ${payout.holding.shares} share${payout.holding.shares > 1 ? 's' : ''} has completed its 249-weekday cycle. Total received: ₹${newTotalPaid.toLocaleString('en-IN')}.`,
+        message: `Congratulations! Your holding of ${payout.holding.shares} lot${payout.holding.shares > 1 ? 's' : ''} has completed its 249-weekday cycle. Total received: ₹${newTotalPaid.toLocaleString('en-IN')}.`,
         data: {
           holding_id: payout.holding_id,
           shares: payout.holding.shares,
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           <p className="text-[#52796f] leading-relaxed">Hi ${user.name || 'Investor'},</p>
           <p className="text-[#52796f] leading-relaxed">Congratulations! Your investment cycle of <strong>249 weekdays</strong> has been completed.</p>
           <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
-            <tr><td style="padding: 8px 0;">Shares Held</td><td style="padding: 8px 0; text-align: right;">${payout.holding.shares}</td></tr>
+            <tr><td style="padding: 8px 0;">Lots Held</td><td style="padding: 8px 0; text-align: right;">${payout.holding.shares}</td></tr>
             <tr><td style="padding: 8px 0;">Total Invested</td><td style="padding: 8px 0; text-align: right;">₹${Number(payout.holding.amount_invested).toLocaleString('en-IN')}</td></tr>
             <tr><td style="padding: 8px 0;">Total Received</td><td style="padding: 8px 0; text-align: right;">₹${newTotalPaid.toLocaleString('en-IN')}</td></tr>
             <tr><td style="padding: 8px 0;">Net Profit</td><td style="padding: 8px 0; text-align: right;">₹${(newTotalPaid - Number(payout.holding.amount_invested)).toLocaleString('en-IN')}</td></tr>

@@ -9,7 +9,7 @@ import { APP_CONSTANTS } from '@/lib/constants';
 
 interface Holding {
   id: string;
-  shares: number;
+  lots: number;
   amount_invested: number;
   daily_payout: number;
   total_projected_return: number;
@@ -62,13 +62,13 @@ export default function PortfolioPage() {
       <div className="bg-white rounded-2xl p-10 text-center border border-[#d8f3dc]">
         <Wallet className="w-16 h-16 text-[#95d5b2] mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-[#1a2e1a] mb-2">No Holdings Yet</h2>
-        <p className="text-[#52796f] mb-6">Buy your first share to start earning daily returns.</p>
+        <p className="text-[#52796f] mb-6">Buy your first lot to start earning daily returns.</p>
         <Link
-          href="/dashboard/buy-shares"
+          href="/dashboard/buy-lots"
           className="inline-flex items-center gap-2 bg-[#2d6a4f] text-white font-semibold py-3 px-6 rounded-2xl hover:bg-[#1a4d3a] transition-colors"
         >
           <Package className="w-5 h-5" />
-          Buy Shares
+          Buy Lots
         </Link>
       </div>
     );
@@ -79,11 +79,11 @@ export default function PortfolioPage() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-[#1a2e1a]">My Portfolio</h1>
         <Link
-          href="/dashboard/buy-shares"
+          href="/dashboard/buy-lots"
           className="flex items-center gap-2 bg-[#2d6a4f] text-white text-sm font-semibold py-2 px-4 rounded-xl hover:bg-[#1a4d3a] transition-colors"
         >
           <Package className="w-4 h-4" />
-          Buy More Shares
+          Buy More Lots
         </Link>
       </div>
 
@@ -95,7 +95,7 @@ export default function PortfolioPage() {
                 <div>
                   <p className="text-[#95d5b2] text-sm">Holding {holding.id.slice(0, 8).toUpperCase()}</p>
                   <p className="text-2xl font-bold text-white mt-1">
-                    {holding.shares} Share{holding.shares > 1 ? 's' : ''}
+                    {holding.lots} Lot{holding.lots > 1 ? 's' : ''}
                   </p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${

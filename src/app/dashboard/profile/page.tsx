@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, Mail, Phone, Landmark, LogOut, Save, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, Landmark, LogOut, Save, Loader2, CheckCircle } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
@@ -48,15 +49,10 @@ async function updateProfile(data: {
 export default function ProfilePage() {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [formData, setFormData] = useState({
-    phone: '',
-    account_holder_name: '',
-    account_number: '',
-    ifsc_code: '',
-    upi_id: '',
-  });
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [dirtyFields, setDirtyFields] = useState<Record<string, string>>({});
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ['profile'],
@@ -67,7 +63,13 @@ export default function ProfilePage() {
     mutationFn: updateProfile,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      setIsEditing(false);
+      setSaveStatus('saved');
+      setDirtyFields({});
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    },
+    onError: () => {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
     },
   });
 
@@ -78,6 +80,44 @@ export default function ProfilePage() {
     router.push('/');
     router.refresh();
   };
+
+  // Auto-save on change (debounced)
+  const handleChange = (field: string, value: string) => {
+    setDirtyFields(prev => ({ ...prev, [field]: value }));
+    setSaveStatus('idle');
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      const payload: Record<string, string> = {};
+      for (const [key, val] of Object.entries(dirtyFields)) {
+        payload[key] = key === 'ifsc_code' ? val.toUpperCase() : val;
+      }
+      setSaveStatus('saving');
+      updateMutation.mutate(payload);
+    }, 800);
+  };
+
+  const handleBlur = (field: string, value: string) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    const payload: Record<string, string> = {};
+    payload[field] = field === 'ifsc_code' ? value.toUpperCase() : value;
+    setSaveStatus('saving');
+    updateMutation.mutate(payload);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -98,26 +138,19 @@ export default function ProfilePage() {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateMutation.mutate(formData);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
   return (
     <div className="space-y-6">
       {/* Profile Header */}
       <div className="bg-white rounded-2xl p-6 border border-[#d8f3dc]">
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-2xl bg-[#d8f3dc] flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <div className="w-20 h-20 rounded-2xl bg-[#d8f3dc] flex items-center justify-center flex-shrink-0 overflow-hidden relative">
             {profile.user.avatar_url ? (
-              <img
+              <Image
                 src={profile.user.avatar_url}
                 alt={profile.user.name || 'User'}
-                className="w-20 h-20 rounded-2xl object-cover"
+                fill
+                className="object-cover rounded-2xl"
+                sizes="80px"
               />
             ) : (
               <User className="w-10 h-10 text-[#2d6a4f]" />
@@ -143,62 +176,25 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Profile Form */}
+      {/* Profile Form - Auto-save enabled */}
       <div className="bg-white rounded-2xl p-6 border border-[#d8f3dc]">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-[#1a2e1a]">Profile Information</h2>
-          {isEditing ? (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({
-                    phone: profile.phone || '',
-                    account_holder_name: profile.account_holder_name || '',
-                    account_number: profile.account_number || '',
-                    ifsc_code: profile.ifsc_code || '',
-                    upi_id: profile.upi_id || '',
-                  });
-                  setIsEditing(false);
-                }}
-                className="px-4 py-2 bg-white border border-[#d8f3dc] text-[#52796f] rounded-xl font-medium hover:bg-[#f0f7f0] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="profile-form"
-                disabled={updateMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-[#2d6a4f] text-white rounded-xl font-medium hover:bg-[#1a4d3a] transition-colors disabled:opacity-50"
-              >
-                {updateMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                Save
-              </button>
-            </div>
-          ) : (
-<button
-              onClick={() => {
-                  setFormData({
-                    phone: profile.phone || '',
-                    account_holder_name: profile.account_holder_name || '',
-                    account_number: profile.account_number || '',
-                    ifsc_code: profile.ifsc_code || '',
-                    upi_id: profile.upi_id || '',
-                  });
-                  setIsEditing(true);
-                }}
-              className="px-4 py-2 bg-[#2d6a4f] text-white rounded-xl font-medium hover:bg-[#1a4d3a] transition-colors"
-            >
-              Edit Profile
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {saveStatus === 'saving' && (
+              <Loader2 className="w-4 h-4 animate-spin text-[#2d6a4f]" />
+            )}
+            {saveStatus === 'saved' && (
+              <CheckCircle className="w-4 h-4 text-[#166534]" />
+            )}
+            {saveStatus === 'error' && (
+              <span className="text-xs text-[#dc2626]">Save failed - retrying...</span>
+            )}
+            <span className="text-xs text-[#95d5b2]">Auto-save enabled</span>
+          </div>
         </div>
 
-        <form id="profile-form" onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="name" className="block text-sm text-[#52796f] mb-1">Full Name</label>
@@ -228,10 +224,10 @@ export default function ProfilePage() {
               type="tel"
               id="phone"
               name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0]"
+              value={(dirtyFields.phone ?? profile.phone) || ''}
+              onChange={e => handleChange('phone', e.target.value)}
+              onBlur={e => handleBlur('phone', e.target.value)}
+              className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
               placeholder="+91 XXXXX XXXXX"
             />
           </div>
@@ -245,10 +241,10 @@ export default function ProfilePage() {
                   type="text"
                   id="account_holder_name"
                   name="account_holder_name"
-                  value={formData.account_holder_name}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0]"
+                  value={(dirtyFields.account_holder_name ?? profile.account_holder_name) || ''}
+                  onChange={e => handleChange('account_holder_name', e.target.value)}
+                  onBlur={e => handleBlur('account_holder_name', e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
                   placeholder="Name on the bank account"
                 />
               </div>
@@ -258,10 +254,10 @@ export default function ProfilePage() {
                   type="text"
                   id="account_number"
                   name="account_number"
-                  value={formData.account_number}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0]"
+                  value={(dirtyFields.account_number ?? profile.account_number) || ''}
+                  onChange={e => handleChange('account_number', e.target.value)}
+                  onBlur={e => handleBlur('account_number', e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
                   placeholder="Bank account number"
                 />
               </div>
@@ -271,10 +267,10 @@ export default function ProfilePage() {
                   type="text"
                   id="ifsc_code"
                   name="ifsc_code"
-                  value={formData.ifsc_code}
-                  onChange={e => setFormData(prev => ({ ...prev, ifsc_code: e.target.value.toUpperCase() }))}
-                  disabled={!isEditing}
-                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0] uppercase"
+                  value={((dirtyFields.ifsc_code ?? profile.ifsc_code) || '').toUpperCase()}
+                  onChange={e => handleChange('ifsc_code', e.target.value.toUpperCase())}
+                  onBlur={e => handleBlur('ifsc_code', e.target.value.toUpperCase())}
+                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent uppercase"
                   placeholder="e.g. HDFC0001234"
                 />
               </div>
@@ -284,49 +280,16 @@ export default function ProfilePage() {
                   type="text"
                   id="upi_id"
                   name="upi_id"
-                  value={formData.upi_id}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent disabled:bg-[#f0f7f0]"
+                  value={(dirtyFields.upi_id ?? profile.upi_id) || ''}
+                  onChange={e => handleChange('upi_id', e.target.value)}
+                  onBlur={e => handleBlur('upi_id', e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-[#d8f3dc] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
                   placeholder="yourname@upi"
                 />
               </div>
             </div>
           </div>
-
-          {isEditing && (
-            <div className="pt-4 border-t border-[#d8f3dc] flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({
-                    phone: profile.phone || '',
-                    account_holder_name: profile.account_holder_name || '',
-                    account_number: profile.account_number || '',
-                    ifsc_code: profile.ifsc_code || '',
-                    upi_id: profile.upi_id || '',
-                  });
-                  setIsEditing(false);
-                }}
-                className="px-4 py-2 bg-white border border-[#d8f3dc] text-[#52796f] rounded-xl font-medium hover:bg-[#f0f7f0] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={updateMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-[#2d6a4f] text-white rounded-xl font-medium hover:bg-[#1a4d3a] transition-colors disabled:opacity-50"
-              >
-                {updateMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                Save Changes
-              </button>
-            </div>
-          )}
-        </form>
+        </div>
       </div>
 
       {/* Account Info */}

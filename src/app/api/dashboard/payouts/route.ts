@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
         amount,
         running_total: Number(payout.running_total),
         holding: payout.holding ? {
-          shares: payout.holding.shares,
+          lots: Number(payout.holding.shares),
           amount_invested: Number(payout.holding.amount_invested),
         } : null,
       };

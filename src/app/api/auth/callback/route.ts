@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { adminClient } from '@/lib/supabase/admin';
+import { sendEmail } from '@/lib/email/resend';
+import { welcomeEmail } from '@/lib/email/templates/investment';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -39,6 +41,17 @@ export async function GET(request: NextRequest) {
 
           if (newUser) {
             await adminClient.from('profiles').insert({ user_id: newUser.id });
+          }
+
+          // Send welcome email
+          try {
+            await sendEmail({
+              to: user.email!,
+              subject: 'Welcome to FarmDirect!',
+              html: welcomeEmail(user.user_metadata?.full_name || 'Investor'),
+            });
+          } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
           }
 
           redirectTo = '/welcome';

@@ -3,7 +3,7 @@ import { adminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from '@/lib/auth/admin';
 import { calculateEndDate, INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
 import { sendEmail } from '@/lib/email/resend';
-import { purchaseApprovedEmail, adminNewRequestEmail } from '@/lib/email/templates/investment';
+import { purchaseApprovedEmail, adminNewRequestEmail, investmentConfirmationEmail } from '@/lib/email/templates/investment';
 
 export async function POST(
   request: NextRequest,
@@ -71,7 +71,7 @@ export async function POST(
       user_id: pr.user_id,
       type: 'purchase_approved',
       title: 'Payment Approved - Holding Activated',
-      message: `Your payment for ${pr.shares} share${pr.shares > 1 ? 's' : ''} (${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(pr.amount))}) has been approved. Daily payouts will begin from ${startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.`,
+      message: `Your payment for ${pr.shares} lot${pr.shares > 1 ? 's' : ''} (${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Number(pr.amount))}) has been approved. Daily payouts will begin from ${startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.`,
       data: {
         shares: pr.shares,
         amount: Number(pr.amount),
@@ -90,7 +90,7 @@ export async function POST(
       new_data: { holding_id: holding.id, start_date: startDate.toISOString() },
     });
 
-    // Send email to user
+    // Send email to user - payment approved
     await sendEmail({
       to: pr.user.email,
       subject: 'Payment Approved - Your FarmDirect Holding is Active',
@@ -101,6 +101,19 @@ export async function POST(
         Number(pr.daily_payout),
         Number(pr.total_projected_return),
         startDate
+      ),
+    });
+
+    // Send investment confirmation email
+    await sendEmail({
+      to: pr.user.email,
+      subject: `Investment Confirmed: ${pr.shares} Lot${pr.shares > 1 ? 's' : ''} - FarmDirect`,
+      html: investmentConfirmationEmail(
+        pr.user.name || 'Investor',
+        pr.shares,
+        Number(pr.amount),
+        Number(pr.daily_payout),
+        Number(pr.total_projected_return)
       ),
     });
 

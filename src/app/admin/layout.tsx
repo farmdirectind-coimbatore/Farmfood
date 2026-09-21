@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Users, FileText, Calendar, Building2, ClipboardList, LayoutDashboard, LogOut } from 'lucide-react';
 
@@ -30,7 +31,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/admin" className="flex items-center gap-2">
-              <img src="/images/logo.png" alt="FarmDirect" className="h-8 w-auto" />
+              <Image
+                src="/images/logo.png"
+                alt="FarmDirect"
+                width={96}
+                height={32}
+              />
             </Link>
             <span className="text-lg font-semibold text-white">Admin Dashboard</span>
           </div>

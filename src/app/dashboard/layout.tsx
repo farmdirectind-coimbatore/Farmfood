@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, PlusCircle, Wallet, History, Bell, User, ArrowLeft } from 'lucide-react';
 import AdminDashboardLink from '@/components/dashboard/AdminDashboardLink';
@@ -9,9 +10,9 @@ import SignOutButton from '@/components/SignOutButton';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/buy-shares', label: 'Buy Shares', icon: PlusCircle },
+  { href: '/dashboard/buy-lots', label: 'Buy Lots', icon: PlusCircle },
   { href: '/dashboard/portfolio', label: 'Portfolio', icon: Wallet },
-  { href: '/dashboard/payouts', label: 'Payout History', icon: History },
+  { href: '/dashboard/payouts', label: 'History', icon: History },
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
   { href: '/dashboard/profile', label: 'Profile', icon: User },
 ];
@@ -25,7 +26,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <header className="lg:hidden bg-[#1a2e1a] border-b border-white/10 sticky top-0 z-40">
         <div className="flex items-center justify-between p-4">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/images/logo.png" alt="FarmDirect" className="h-8 w-auto" />
+            <Image
+              src="/images/logo.png"
+              alt="FarmDirect"
+              width={96}
+              height={32}
+            />
           </Link>
           <span className="text-lg font-semibold text-white">Dashboard</span>
           <AdminDashboardLink compact />        </div>
@@ -36,7 +42,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <aside className="hidden lg:flex lg:w-64 bg-[#1a2e1a] border-r border-white/10 min-h-screen sticky top-0 flex-col">
           <div className="p-6 border-b border-white/10">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <img src="/images/logo.png" alt="FarmDirect" className="h-10 w-auto" />
+              <Image
+                src="/images/logo.png"
+                alt="FarmDirect"
+                width={120}
+                height={40}
+              />
             </Link>
           </div>
           <nav className="p-4 space-y-1 flex-1">

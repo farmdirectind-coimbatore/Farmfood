@@ -55,7 +55,7 @@ export async function POST(
       user_id: pr.user_id,
       type: 'purchase_rejected',
       title: 'Payment Rejected',
-      message: `Your payment for ${pr.shares} share${pr.shares > 1 ? 's' : ''} was rejected. Reason: ${reason}. You can submit a new payment proof from your dashboard.`,
+      message: `Your payment for ${pr.shares} lot${pr.shares > 1 ? 's' : ''} was rejected. Reason: ${reason}. You can submit a new payment proof from your dashboard.`,
       data: {
         shares: pr.shares,
         amount: Number(pr.amount),

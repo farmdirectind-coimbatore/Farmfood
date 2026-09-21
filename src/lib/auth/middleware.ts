@@ -39,66 +39,64 @@ export async function updateSession(request: NextRequest) {
   const adminCookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
   const isAdminViaCookie = await verifyAdminSession(adminCookie);
 
-  // Public paths that don't require auth
-  const publicPaths = ['/', '/how-it-works', '/terms', '/privacy', '/risk-disclosure', '/contact', '/login', '/api', '/admin/login'];
-  const isPublicPath = publicPaths.some(p => path === p || path.startsWith(p + '/'));
   const isAdminLoginPath = path === '/admin/login';
-
-  // Dashboard paths (require USER role)
-  const dashboardPaths = ['/dashboard'];
-  const isDashboardPath = dashboardPaths.some(p => path === p || path.startsWith(p + '/'));
-
-  // Admin paths (require ADMIN role)
-  const adminPaths = ['/admin'];
-  const isAdminPath = adminPaths.some(p => path === p || path.startsWith(p + '/'));
-
-  // Welcome path (requires auth, any role)
+  const isDashboardPath = path === '/dashboard' || path.startsWith('/dashboard/');
+  const isAdminPath = path === '/admin' || path.startsWith('/admin/');
   const isWelcomePath = path === '/welcome';
+  const hasRedirectParam = !!request.nextUrl.searchParams.get('redirect');
 
-  // Admin login page: always reachable, redirect into /admin once an admin session exists
+  // Admin login page: serve the form. If a verified admin cookie already
+  // exists (and we are not returning from a failed attempt), go straight in.
   if (isAdminLoginPath) {
-    if (isAdminViaCookie) {
+    if (isAdminViaCookie && !hasRedirectParam) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
     return supabaseResponse;
   }
 
-  // Verified admin cookie grants access to all admin paths
-  if (isAdminPath && isAdminViaCookie) {
-    return supabaseResponse;
-  }
-
-  if (!user) {
-    if (isDashboardPath || isAdminPath || isWelcomePath) {
-      const url = request.nextUrl.clone();
-      url.pathname = isAdminPath ? '/admin/login' : '/login';
-      url.searchParams.set('redirect', path);
-      return NextResponse.redirect(url);
-    }
-    return supabaseResponse;
-  }
-
-  // Check user role for protected routes
-  if (isDashboardPath || isAdminPath) {
-    // We need to check the role from our users table
-    // For middleware, we'll do a quick check
+  // Resolve role only when a Supabase session exists
+  let role: string | null = null;
+  if (user) {
     const { data: userProfile } = await supabase
       .from('users')
       .select('role')
       .eq('supabase_id', user.id)
       .single();
+    role = userProfile?.role ?? null;
+  }
 
-    const role = userProfile?.role || 'USER';
-
-    if (isAdminPath && role !== 'ADMIN') {
+  // ── Admin paths ─────────────────────────────────────────────────
+  if (isAdminPath) {
+    // A logged-in investor account (explicitly role USER) is NEVER
+    // allowed into admin, even if a stale admin cookie exists.
+    if (user && role === 'USER') {
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
+      url.searchParams.delete('redirect');
       return NextResponse.redirect(url);
     }
 
-    if (isDashboardPath && role === 'ADMIN') {
-      // Allow admins to access dashboard too
+    // No verified admin cookie → send to password login.
+    if (!isAdminViaCookie) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/login';
+      url.searchParams.set('redirect', path);
+      return NextResponse.redirect(url);
     }
+
+    // Verified admin cookie (and not an explicit investor account) → allow.
+    return supabaseResponse;
+  }
+
+  // ── Dashboard / welcome paths ──────────────────────────────────
+  if (isDashboardPath || isWelcomePath) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.searchParams.set('redirect', path);
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
   }
 
   return supabaseResponse;

@@ -14,14 +14,14 @@ interface ShareCalculatorProps {
 }
 
 export interface CalculationResult {
-  shares: number;
+  lots: number;
   totalInvested: number;
   dailyPayout: number;
   totalWeekdays: number;
   totalProjectedReturn: number;
   netProfit: number;
-  bonusShares?: number;
-  totalShares?: number;
+  bonusLots?: number;
+  totalLots?: number;
 }
 
 export function ShareCalculator({
@@ -32,17 +32,17 @@ export function ShareCalculator({
   unit = 'lot',
   className = '',
 }: ShareCalculatorProps) {
-  const [shares, setShares] = useState(initialShares);
+  const [lots, setLots] = useState(initialShares);
   const unitLabel = unit === 'share' ? 'Share' : 'Lot';
   const unitLabelPlural = unit === 'share' ? 'Shares' : 'Lots';
 
   const calculation = useMemo((): CalculationResult => {
-    const totalInvested = shares * APP_CONSTANTS.SHARE_PRICE;
+    const totalInvested = lots * APP_CONSTANTS.SHARE_PRICE;
     const dailyPayout = totalInvested * APP_CONSTANTS.DAILY_RETURN_RATE;
     const totalProjectedReturn = dailyPayout * APP_CONSTANTS.TOTAL_WEEKDAYS;
 
     const result: CalculationResult = {
-      shares,
+      lots,
       totalInvested,
       dailyPayout,
       totalWeekdays: APP_CONSTANTS.TOTAL_WEEKDAYS,
@@ -51,32 +51,32 @@ export function ShareCalculator({
     };
 
     if (showBonus) {
-      result.bonusShares = shares;
-      result.totalShares = shares * 2;
+      result.bonusLots = lots;
+      result.totalLots = lots * 2;
     }
 
     return result;
-  }, [shares, showBonus]);
+  }, [lots, showBonus]);
 
   const perUnitDaily = Math.round(APP_CONSTANTS.SHARE_PRICE * APP_CONSTANTS.DAILY_RETURN_RATE);
   const perUnitTotal = perUnitDaily * APP_CONSTANTS.TOTAL_WEEKDAYS;
 
   const handleIncrement = () => {
-    if (shares < maxShares) {
-      setShares(shares + 1);
+    if (lots < maxShares) {
+      setLots(lots + 1);
     }
   };
 
   const handleDecrement = () => {
-    if (shares > 1) {
-      setShares(shares - 1);
+    if (lots > 1) {
+      setLots(lots - 1);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     if (!isNaN(value) && value >= 1 && value <= maxShares) {
-      setShares(value);
+      setLots(value);
     }
   };
 
@@ -92,7 +92,7 @@ export function ShareCalculator({
         <div className="flex items-center gap-3">
           <button
             onClick={handleDecrement}
-            disabled={shares <= 1}
+            disabled={lots <= 1}
             className="w-12 h-12 rounded-xl bg-[#d8f3dc] flex items-center justify-center text-2xl font-bold text-[#2d6a4f] active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label={`Decrease ${unitLabelPlural.toLowerCase()}`}
           >
@@ -102,19 +102,19 @@ export function ShareCalculator({
           <div className="flex-1 text-center">
             <input
               type="number"
-              value={shares}
+              value={lots}
               onChange={handleInputChange}
               min={1}
               max={maxShares}
               className="w-full text-4xl font-bold text-[#2d6a4f] bg-transparent border-none outline-none text-center"
               aria-label={`Number of ${unitLabelPlural.toLowerCase()}`}
             />
-            <p className="text-sm text-[#52796f]">{shares > 1 ? unitLabelPlural : unitLabel}</p>
+            <p className="text-sm text-[#52796f]">{lots > 1 ? unitLabelPlural : unitLabel}</p>
           </div>
 
           <button
             onClick={handleIncrement}
-            disabled={shares >= maxShares}
+            disabled={lots >= maxShares}
             className="w-12 h-12 rounded-xl bg-[#2d6a4f] flex items-center justify-center text-2xl font-bold text-white active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label={`Increase ${unitLabelPlural.toLowerCase()}`}
           >
@@ -133,12 +133,12 @@ export function ShareCalculator({
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/10 rounded-xl p-4">
             <p className="text-[#95d5b2] text-xs mb-1">{showBonus ? `Total ${unitLabelPlural} You Get` : 'Daily Earnings'}</p>
-            {showBonus && calculation.totalShares ? (
+{showBonus && calculation.totalLots ? (
               <>
-                <p className="text-2xl font-bold">{calculation.totalShares.toLocaleString()}</p>
-                {calculation.bonusShares && (
+                <p className="text-2xl font-bold">{calculation.totalLots.toLocaleString()}</p>
+                {calculation.bonusLots && (
                   <p className="text-[#95d5b2] text-xs mt-1">
-                    {calculation.shares.toLocaleString()} selected + {calculation.bonusShares.toLocaleString()} bonus
+                    {calculation.lots.toLocaleString()} selected + {calculation.bonusLots.toLocaleString()} bonus
                   </p>
                 )}
               </>

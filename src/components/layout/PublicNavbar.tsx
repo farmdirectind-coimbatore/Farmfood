@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ArrowRight, LayoutDashboard } from 'lucide-react';
 import { useSupabaseSession } from '@/components/SupabaseSessionProvider';
@@ -21,7 +22,12 @@ export default function PublicNavbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href={session ? '/dashboard' : '/'} className="flex items-center flex-shrink-0" aria-label="FarmDirect">
-          <img src="/images/logo.png" alt="FarmDirect" className="h-12 w-auto" />
+          <Image
+            src="/images/logo.png"
+            alt="FarmDirect"
+            width={168}
+            height={56}
+          />
         </Link>
 
         {/* Desktop Nav */}

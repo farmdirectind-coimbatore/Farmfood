@@ -41,7 +41,7 @@ function CopyButton({ text, field, copied, onCopy }: CopyButtonProps) {
 
 export function PurchaseForm() {
   const router = useRouter();
-  const [shares, setShares] = useState(1);
+  const [lots, setLots] = useState(1);
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function PurchaseForm() {
   const [copied, setCopied] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const investment = calculateInvestment(shares);
+  const investment = calculateInvestment(lots);
 
   const { data: bankDetails } = useQuery({
     queryKey: ['bankDetails'],
@@ -92,7 +92,7 @@ export function PurchaseForm() {
       if (!screenshot) throw new Error('Screenshot required');
 
       const formData = new FormData();
-      formData.append('shares', shares.toString());
+      formData.append('lots', lots.toString());
       formData.append('screenshot', screenshot);
 
       const res = await fetch('/api/purchase/request', {
@@ -132,7 +132,7 @@ export function PurchaseForm() {
 
   const buildUpiLink = (upiId: string) => {
     if (!upiId) return null;
-    return `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(bankDetails?.account_name || 'FarmDirect')}&am=${investment.totalInvested}&cu=INR&tn=${encodeURIComponent('FarmDirect Share Purchase')}`;
+    return `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(bankDetails?.account_name || 'FarmDirect')}&am=${investment.totalInvested}&cu=INR&tn=${encodeURIComponent('FarmDirect Lot Purchase')}`;
   };
 
   const gpayLink = bankDetails ? buildUpiLink(bankDetails.gpay_id || bankDetails.upi_id || '') : null;
@@ -142,12 +142,12 @@ export function PurchaseForm() {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-3xl p-6 border border-[#d8f3dc]">
-          <h2 className="text-xl font-bold text-[#1a2e1a] mb-6">Select Your Shares</h2>
+          <h2 className="text-xl font-bold text-[#1a2e1a] mb-6">Select Your Lots</h2>
           <ShareCalculator
-            initialShares={shares}
-            onChange={(calc) => setShares(calc.shares)}
+            initialShares={lots}
+            onChange={(calc) => setLots(calc.lots)}
             maxShares={1000}
-            unit="share"
+            unit="lot"
           />
         </div>
 
@@ -217,7 +217,7 @@ export function PurchaseForm() {
           )}
 
           <p className="text-xs text-[#52796f] mt-4">
-            Transfer <strong>{formatINR(investment.totalInvested)}</strong> for {shares} share{shares > 1 ? 's' : ''}, then upload a screenshot of the payment confirmation.
+            Transfer <strong>{formatINR(investment.totalInvested)}</strong> for {lots} lot{lots > 1 ? 's' : ''}, then upload a screenshot of the payment confirmation.
           </p>
         </div>
 
@@ -265,7 +265,7 @@ export function PurchaseForm() {
 
           <div className="bg-[#f0f7f0] rounded-xl p-4 mb-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-[#1a2e1a]">{shares} Share{shares > 1 ? 's' : ''}</span>
+              <span className="font-medium text-[#1a2e1a]">{lots} Lot{lots > 1 ? 's' : ''}</span>
               <span className="text-[#2d6a4f] font-bold">{formatINR(investment.totalInvested)}</span>
             </div>
             <p className="text-sm text-[#52796f]">Daily: {formatINR(investment.dailyPayout)} · Payout Days: 249</p>
@@ -376,7 +376,7 @@ export function PurchaseForm() {
         </div>
         <h3 className="text-2xl font-bold text-[#1a2e1a] mb-2">Payment Proof Submitted!</h3>
         <p className="text-[#52796f] mb-6 max-w-md mx-auto">
-          We have received your payment proof for {shares} share{shares > 1 ? 's' : ''}. Our team will verify it within 24 hours. You will receive an email once approved.
+          We have received your payment proof for {lots} lot{lots > 1 ? 's' : ''}. Our team will verify it within 24 hours. You will receive an email once approved.
         </p>
         <button
           onClick={() => router.push('/dashboard')}

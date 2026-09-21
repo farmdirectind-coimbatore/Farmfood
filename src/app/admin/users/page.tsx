@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, Fragment } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Loader2, Users, Phone, Landmark, BadgeInfo } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Loader2, Users, Phone, Landmark, BadgeInfo, Trash2, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { formatINR } from '@/lib/utils/currency';
 
@@ -23,7 +24,7 @@ interface AdminUser {
     upi_id: string | null;
   } | null;
   _stats: {
-    total_shares: number;
+    total_lots: number;
     total_invested: number;
     pending_requests: number;
   };
@@ -48,17 +49,33 @@ async function fetchUsers(params: { page: number; search: string; role: string; 
   return res.json();
 }
 
+async function deleteUser(userId: string): Promise<void> {
+  const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete user');
+}
+
 export default function AdminUsersPage() {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('all');
   const [sort, setSort] = useState('newest');
   const [searchInput, setSearchInput] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminUsers', page, search, role, sort],
     queryFn: () => fetchUsers({ page, search, role, sort }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      setDeleteConfirmId(null);
+    },
   });
 
   const applySearch = () => {
@@ -68,6 +85,16 @@ export default function AdminUsersPage() {
 
   const pageSize = data?.pageSize ?? 10;
   const totalPages = data ? Math.ceil(data.total / pageSize) : 1;
+
+  const handleDeleteClick = (userId: string, userName: string, userRole: string) => {
+    if (userRole === 'ADMIN') {
+      alert('Cannot delete admin users');
+      return;
+    }
+    if (confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) {
+      deleteMutation.mutate(userId);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -118,7 +145,7 @@ export default function AdminUsersPage() {
           >
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
-            <option value="shares">Most Shares</option>
+            <option value="lots">Most Lots</option>
             <option value="invested">Most Invested</option>
           </select>
         </div>
@@ -147,11 +174,11 @@ export default function AdminUsersPage() {
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-[#52796f]">User</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-[#52796f]">Role</th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-[#52796f]">Shares</th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-[#52796f]">Lots</th>
                   <th className="px-4 py-3 text-right text-sm font-semibold text-[#52796f]">Invested</th>
                   <th className="px-4 py-3 text-center text-sm font-semibold text-[#52796f]">Pending</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-[#52796f]">Joined</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-[#52796f]"></th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-[#52796f]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#d8f3dc]">
@@ -160,9 +187,15 @@ export default function AdminUsersPage() {
                   <tr className="hover:bg-[#fafdf7] transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-[#d8f3dc] overflow-hidden flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-[#d8f3dc] overflow-hidden flex-shrink-0 relative">
                           {user.avatar_url ? (
-                            <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                            <Image
+                              src={user.avatar_url}
+                              alt={user.name}
+                              fill
+                              className="object-cover"
+                              sizes="36px"
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-[#2d6a4f] font-bold">
                               {user.name?.[0]?.toUpperCase() ?? 'U'}
@@ -183,7 +216,7 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right text-sm font-medium text-[#1a2e1a]">
-                      {user._stats.total_shares}
+                      {user._stats.total_lots}
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-[#1a2e1a]">
                       {formatINR(user._stats.total_invested)}
@@ -201,13 +234,25 @@ export default function AdminUsersPage() {
                       {format(new Date(user.created_at), 'dd MMM yyyy')}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => setExpandedId(expandedId === user.id ? null : user.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#f0f7f0] text-[#2d6a4f] text-xs font-semibold rounded-lg hover:bg-[#d8f3dc] transition-colors"
-                      >
-                        {expandedId === user.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        Details
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => setExpandedId(expandedId === user.id ? null : user.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#f0f7f0] text-[#2d6a4f] text-xs font-semibold rounded-lg hover:bg-[#d8f3dc] transition-colors"
+                        >
+                          {expandedId === user.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          Details
+                        </button>
+                        {user.role !== 'ADMIN' && (
+                          <button
+                            onClick={() => handleDeleteClick(user.id, user.name || user.email, user.role)}
+                            disabled={deleteMutation.isPending}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#fef2f2] text-[#dc2626] text-xs font-semibold rounded-lg hover:bg-[#fecaca] transition-colors disabled:opacity-50"
+                            title="Delete user"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                   {expandedId === user.id && (
@@ -219,8 +264,21 @@ export default function AdminUsersPage() {
                           <DetailBox icon={Landmark} label="Account Number" value={maskAccountNumber(user.profile?.account_number)} />
                           <DetailBox icon={BadgeInfo} label="IFSC Code" value={user.profile?.ifsc_code || 'Not set'} />
                           <DetailBox icon={BadgeInfo} label="UPI ID" value={user.profile?.upi_id || 'Not set'} />
-                          <DetailBox icon={Users} label="Total Shares" value={String(user._stats.total_shares)} />
+                          <DetailBox icon={Users} label="Total Lots" value={String(user._stats.total_lots)} />
                           <DetailBox icon={Users} label="Total Invested" value={formatINR(user._stats.total_invested)} />
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-[#d8f3dc] flex justify-end">
+                          {user.role !== 'ADMIN' && (
+                            <button
+                              onClick={() => handleDeleteClick(user.id, user.name || user.email, user.role)}
+                              disabled={deleteMutation.isPending}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-[#fef2f2] text-[#dc2626] text-sm font-semibold rounded-xl hover:bg-[#fecaca] transition-colors disabled:opacity-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <AlertCircle className="w-4 h-4" />
+                              Delete User
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -258,7 +316,7 @@ export default function AdminUsersPage() {
         </div>
       )}
     </div>
-);
+  );
 }
 
 function maskAccountNumber(value?: string | null): string {

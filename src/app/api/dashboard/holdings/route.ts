@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
       };
       return {
         ...holding,
+        lots: Number(holding.shares),
         amount_invested: Number(holding.amount_invested),
         daily_payout: Number(holding.daily_payout),
         total_projected_return: totalProjectedReturn,

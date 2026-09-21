@@ -40,11 +40,12 @@ export async function GET(request: NextRequest) {
 
     const enrichedRequests = await Promise.all(
       (requests || []).map(async (req) => {
+        const enriched = { ...req, lots: Number(req.shares) };
         if (req.screenshot_url) {
           const signedUrl = await getSignedDownloadUrl(req.screenshot_url);
-          return { ...req, screenshot_url: signedUrl || req.screenshot_url };
+          return { ...enriched, screenshot_url: signedUrl || req.screenshot_url };
         }
-        return req;
+        return enriched;
       })
     );
 

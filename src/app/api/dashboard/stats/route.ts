@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate stats
-    let totalShares = 0;
+    let totalLots = 0;
     let totalInvested = 0;
     let dailyPayoutRate = 0;
     let totalWeekdaysPaid = 0;
@@ -57,13 +57,14 @@ export async function GET(request: NextRequest) {
       const progressPercent = Math.min(100, (weekdaysPaid / INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS) * 100);
       const isComplete = holding.status === 'COMPLETED' || weekdaysPaid >= INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS;
 
-      totalShares += holding.shares;
+      totalLots += holding.shares;
       totalInvested += Number(holding.amount_invested);
       dailyPayoutRate += Number(holding.daily_payout);
       totalWeekdaysPaid += weekdaysPaid;
 
       return {
         ...holding,
+        lots: Number(holding.shares),
         amount_invested: Number(holding.amount_invested),
         daily_payout: Number(holding.daily_payout),
         total_projected_return: totalProjectedReturn,
@@ -91,14 +92,16 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     return NextResponse.json({
-      totalShares,
+      totalLots,
       totalInvested,
       dailyPayoutRate,
       weekdaysPaid: totalWeekdaysPaid,
       totalReceived,
       projectedRemaining,
       holdings: processedHoldings,
-      latestPurchase,
+      latestPurchase: latestPurchase
+        ? { ...latestPurchase, lots: Number(latestPurchase.shares) }
+        : null,
       onboardingComplete: !!profileRow?.phone,
     });
   } catch (error) {

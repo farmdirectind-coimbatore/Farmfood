@@ -30,7 +30,7 @@ export default function HomeCalculatorSection() {
         <div className="text-center mt-8">
           {session ? (
             <Link
-              href="/dashboard/buy-shares"
+              href="/dashboard/buy-lots"
               className="inline-flex items-center gap-2 bg-[#2d6a4f] text-white font-semibold py-3.5 px-8 rounded-2xl shadow-md hover:bg-[#1a4d3a] hover:shadow-lg transition-all active:scale-[0.97]"
             >
               Buy Lots Now

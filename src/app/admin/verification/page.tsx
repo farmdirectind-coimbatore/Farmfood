@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, ChevronLeft, ChevronRight, Loader2, CheckCircle2, XCircle, FileText, ExternalLink, Share2 } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2, CheckCircle2, XCircle, FileText, ExternalLink, Package } from 'lucide-react';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { formatINR } from '@/lib/utils/currency';
 
 interface VerificationRequest {
   id: string;
   user_id: string;
-  shares: number;
+  lots: number;
   amount: number;
   daily_payout: number;
   total_projected_return: number;
@@ -147,9 +148,15 @@ export default function AdminVerificationPage() {
             <div key={request.id} className="bg-white rounded-2xl border border-[#d8f3dc] overflow-hidden">
               <div className="p-5 flex items-start justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-full bg-[#d8f3dc] overflow-hidden flex-shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-[#d8f3dc] overflow-hidden flex-shrink-0 relative">
                     {request.user.avatar_url ? (
-                      <img src={request.user.avatar_url} alt={request.user.name} className="w-full h-full object-cover" />
+                      <Image
+                        src={request.user.avatar_url}
+                        alt={request.user.name}
+                        fill
+                        className="object-cover"
+                        sizes="44px"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[#2d6a4f] font-bold">
                         {request.user.name?.[0]?.toUpperCase() ?? 'U'}
@@ -169,10 +176,10 @@ export default function AdminVerificationPage() {
 
               <div className="px-5 pb-5 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-[#fafdf7] rounded-xl p-3">
-                  <p className="text-xs text-[#52796f] mb-1">Shares Requested</p>
+                  <p className="text-xs text-[#52796f] mb-1">Lots Requested</p>
                   <p className="font-bold text-[#1a2e1a] flex items-center gap-1">
-                    <Share2 className="w-4 h-4 text-[#2d6a4f]" />
-                    {request.shares}
+                    <Package className="w-4 h-4 text-[#2d6a4f]" />
+                    {request.lots}
                   </p>
                 </div>
                 <div className="bg-[#fafdf7] rounded-xl p-3">
