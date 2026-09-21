@@ -35,7 +35,7 @@ export function emailTemplate(content: string, preheader?: string): string {
           Coimbatore, Tamil Nadu
         </p>
         <p style="margin: 16px 0 0; font-size: 11px; color: #95d5b2;">
-          © 2026 FarmDirect. All rights reserved.
+          © 2026 FarmDirect Agro Ventures. All rights reserved.
         </p>
       </td>
     </tr>
