@@ -102,7 +102,7 @@ export default function PublicFooter() {
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-white/40 text-xs">
-              © {new Date().getFullYear()} FarmDirect Agro Ventures. All rights reserved.
+              © {new Date().getFullYear()} FarmDirect. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
               {footerLinks.legal.map((link) => (
