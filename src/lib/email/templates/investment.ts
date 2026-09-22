@@ -129,10 +129,13 @@ export function cycleCompletedEmail(userName: string, shares: number, totalInves
 }
 
 export function adminNewRequestEmail(userName: string, userEmail: string, shares: number, amount: number): string {
+  const reviewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin/login?redirect=${encodeURIComponent('/admin/verification')}`;
+
   const content = `
-    <h1 style="color: #1a2e1a; margin: 0 0 16px; font-size: 24px;">New Purchase Request</h1>
+    <h1 style="color: #1a2e1a; margin: 0 0 16px; font-size: 24px;">New Payment Verification Request</h1>
     <p style="color: #52796f; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
-      A new payment verification request has been submitted.
+      A new payment verification request has been submitted and is awaiting your approval.
+      Log in to the admin dashboard to review the payment proof.
     </p>
     
     <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
@@ -143,11 +146,11 @@ export function adminNewRequestEmail(userName: string, userEmail: string, shares
     </table>
     
     <div style="text-align: center; margin: 32px 0;">
-      ${buttonStyle(`${process.env.NEXT_PUBLIC_APP_URL}/admin/verification`, 'Review Request')}
+      ${buttonStyle(reviewUrl, 'Login & Review Request')}
     </div>
   `;
   
-  return emailTemplate(content, `New purchase request: ${shares} lot${shares > 1 ? 's' : ''} from ${userName}`);
+  return emailTemplate(content, `New payment verification request: ${shares} lot${shares > 1 ? 's' : ''} from ${userName}`);
 }
 
 export function weeklyDigestEmail(userName: string, payouts: Array<{ date: string; amount: number }>, totalThisWeek: number): string {

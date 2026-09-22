@@ -81,10 +81,6 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60 z-10" />
 
         <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 text-center py-24">
-          <span className="inline-block px-4 py-1.5 bg-white/15 backdrop-blur-sm rounded-full text-white text-xs sm:text-sm font-medium mb-5 border border-white/20">
-            Coimbatore, Tamil Nadu
-          </span>
-
           <h1 className="font-display text-4xl sm:text-5xl md:text-7xl font-bold text-white leading-[1.1] mb-5">
             Own a Piece of
             <br />
@@ -106,21 +102,13 @@ export default function HomePage() {
           </div>
 
           {/* quick stats strip */}
-          <div className="mt-12 inline-flex items-center gap-5 bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-3 border border-white/15 text-sm">
-            <div className="text-center">
-              <span className="block font-bold text-white">₹10k</span>
-              <span className="text-white/60">per lot</span>
-            </div>
-            <div className="w-px h-6 bg-white/20" />
-            <div className="text-center">
-              <span className="block font-bold text-white">1%</span>
-              <span className="text-white/60">daily / weekday</span>
-            </div>
-            <div className="w-px h-6 bg-white/20" />
-            <div className="text-center">
-              <span className="block font-bold text-white">249</span>
-              <span className="text-white/60">weekday payouts</span>
-            </div>
+          <div className="mt-12 inline-flex flex-col items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/15 text-sm">
+            <span className="text-white/85">
+              Start investing with just <strong className="text-white">₹10k per lot</strong> — start earning today.
+            </span>
+            <span className="text-white/60 text-xs flex items-center gap-1">
+              <MapPin className="w-3 h-3" /> Coimbatore, Tamil Nadu
+            </span>
           </div>
         </div>
       </section>
@@ -246,7 +234,6 @@ export default function HomePage() {
 
               <div className="space-y-4 mb-8">
                 {[
-                  { icon: MapPin, label: 'Coimbatore, Tamil Nadu' },
                   { icon: Sunrise, label: 'Weekends 9 AM – 6 PM', sub: 'Weekdays by appointment' },
                   { icon: Coffee, label: 'Farm walk · Animal feeding · Traditional lunch', sub: 'All included in your visit' },
                 ].map((row, i) => (

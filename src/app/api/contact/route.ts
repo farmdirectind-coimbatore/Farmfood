@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     `, 'New contact form submission');
 
     await sendEmail({
-      to: process.env.ADMIN_EMAILS || 'admin@farmdirect.ind',
+      to: process.env.ADMIN_EMAILS || 'farmdirect.ind@gmail.com',
       subject: `Contact Form: ${subject}`,
       html: adminHtml,
     });

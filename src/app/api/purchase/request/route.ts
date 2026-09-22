@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     // Send email to admin
     await sendEmail({
-      to: process.env.ADMIN_EMAILS || 'admin@farmdirect.ind',
+      to: process.env.ADMIN_EMAILS || 'farmdirect.ind@gmail.com',
       subject: `New Purchase Request: ${lots} lot${lots > 1 ? 's' : ''} from ${user.email}`,
       html: adminNewRequestEmail(
         user.user_metadata?.full_name || 'Investor',

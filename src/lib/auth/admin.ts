@@ -11,7 +11,7 @@ export interface AdminIdentity {
 }
 
 export async function getSystemAdmin(): Promise<AdminIdentity | null> {
-  const email = process.env.ADMIN_EMAILS || 'admin@farmdirect.ind';
+  const email = process.env.ADMIN_EMAILS || 'farmdirect.ind@gmail.com';
 
   const { data: existing, error } = await adminClient
     .from('users')
