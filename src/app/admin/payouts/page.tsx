@@ -113,6 +113,7 @@ export default function AdminPayoutsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminPayoutsToday'] });
       queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      queryClient.invalidateQueries({ queryKey: ['adminPayoutHistory'] });
     },
   });
 
@@ -137,6 +138,7 @@ export default function AdminPayoutsPage() {
   const historyQuery = useQuery({
     queryKey: ['adminPayoutHistory', historyFilter],
     queryFn: () => fetchHistory(historyFilter),
+    refetchInterval: 60000,
   });
 
   if (isLoading) {
@@ -256,7 +258,7 @@ export default function AdminPayoutsPage() {
                     <div className="mt-3 flex items-center justify-between flex-wrap gap-3 bg-[#fafdf7] border border-[#d8f3dc] rounded-xl px-4 py-3">
                       <div className="flex items-center gap-4 flex-wrap text-sm">
                         <span className="text-[#52796f]">📍 <span className="font-medium text-[#1a2e1a]">{profile.account_holder_name || '—'}</span></span>
-                        <span className="text-[#52796f]">A/C <span className="font-medium text-[#1a2e1a]">••••{profile.account_number?.slice(-4) || '—'}</span></span>
+                        <span className="text-[#52796f]">A/C <span className="font-medium text-[#1a2e1a]">{profile.account_number || '—'}</span></span>
                         <span className="text-[#52796f]">IFSC <span className="font-medium text-[#1a2e1a]">{profile.ifsc_code || '—'}</span></span>
                         <span className="text-[#52796f]">UPI <span className="font-medium text-[#1a2e1a]">{profile.upi_id || '—'}</span></span>
                       </div>

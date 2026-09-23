@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
     const today = zonedStartOfDay(now);
-    const todayStart = today.toISOString();
 
     // Get all active holdings with user + bank profile
     const { data: holdings, error: holdingsError } = await adminClient
@@ -50,6 +49,13 @@ export async function GET(request: NextRequest) {
     const paidToday: any[] = [];
     const nearingCompletion: any[] = [];
 
+    const enrich = (row: any, holding: any) => ({
+      ...row,
+      holding: { ...holding, lots: Number(holding.shares) },
+      amount: Number(row.amount),
+      running_total: Number(row.running_total),
+    });
+
     // Generate + bucket payouts for each active holding
     for (const holding of holdings || []) {
       const startDate = new Date(holding.start_date);
@@ -59,6 +65,17 @@ export async function GET(request: NextRequest) {
       const eligibleDates = eligibleWeekdayBatchDates(startDate, now);
       const holdingRows = existingByHolding.get(holding.id) || new Map();
       const confirmedWeekdays = holding.weekdays_paid || 0;
+
+      // Bucket already-confirmed (marked) payout rows. A row counts as "paid
+      // today" when the admin marked it after today's 6 AM IST start — not by
+      // its payout date — so confirmed rows are still reported even though the
+      // generation loop below skips weekdays that are already confirmed.
+      for (const row of holdingRows.values()) {
+        if (!row.marked_by) continue;
+        if (row.marked_at && new Date(row.marked_at).getTime() >= today.getTime()) {
+          paidToday.push(enrich(row, holding));
+        }
+      }
 
       for (let i = 0; i < eligibleDates.length; i++) {
         const batchIndex = i + 1;
@@ -88,12 +105,8 @@ export async function GET(request: NextRequest) {
           holdingRows.set(dateKey, row);
         }
 
-        if (row.marked_by) {
-          if (row.marked_at && row.marked_at >= todayStart) {
-            paidToday.push({ ...row, holding: { ...holding, lots: Number(holding.shares) }, amount: Number(row.amount), running_total: Number(row.running_total) });
-          }
-        } else {
-          pending.push({ ...row, holding: { ...holding, lots: Number(holding.shares) }, amount: Number(row.amount), running_total: Number(row.running_total) });
+        if (!row.marked_by) {
+          pending.push(enrich(row, holding));
         }
       }
 
