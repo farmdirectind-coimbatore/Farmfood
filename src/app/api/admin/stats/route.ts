@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminClient } from '@/lib/supabase/admin';
 import { requireAdmin } from '@/lib/auth/admin';
 import { calculateHoldingProgress, eligibleWeekdayBatchDates, INVESTMENT_CONSTANTS } from '@/lib/calculations/investment';
+import { addZonedDays, isSameZonedDay, isZonedWeekday, zonedStartOfDay } from '@/lib/utils/time';
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,13 +40,11 @@ export async function GET(request: NextRequest) {
 
     if (payoutsError) throw payoutsError;
 
-    // Today's payouts (only rows actually due today, i.e. past the 6 AM batch)
+    // Today's payouts (only rows actually due today, i.e. past the 6 AM IST batch)
     const now = new Date();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isWeekday = today.getDay() !== 0 && today.getDay() !== 6;
+    const today = zonedStartOfDay(now);
+    const tomorrow = addZonedDays(today, 1);
+    const isWeekday = isZonedWeekday(today);
 
     const { data: todaysPayouts, error: todaysPayoutsError } = await adminClient
       .from('payouts')
@@ -61,21 +60,16 @@ export async function GET(request: NextRequest) {
     let pendingToday = 0;
     for (const h of holdings ?? []) {
       if (h.status !== 'ACTIVE') continue;
-      const startDate = new Date(h.start_date);
-      startDate.setHours(0, 0, 0, 0);
+      const startDate = zonedStartOfDay(new Date(h.start_date));
       if (startDate > today) continue;
-      const endDate = new Date(h.end_date);
-      endDate.setHours(0, 0, 0, 0);
+      const endDate = zonedStartOfDay(new Date(h.end_date));
       if (endDate < today) continue;
       if (!isWeekday) continue;
 
       const eligibleDates = eligibleWeekdayBatchDates(new Date(h.start_date), now);
       if (eligibleDates.length === 0) continue;
       const last = eligibleDates[eligibleDates.length - 1];
-      const dueToday =
-        last.getFullYear() === today.getFullYear() &&
-        last.getMonth() === today.getMonth() &&
-        last.getDate() === today.getDate();
+      const dueToday = isSameZonedDay(last, today);
       if (!dueToday) continue;
 
       if (markedToday.has(h.id)) {

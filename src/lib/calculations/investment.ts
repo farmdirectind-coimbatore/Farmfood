@@ -1,4 +1,12 @@
 // Investment constants
+import {
+  addZonedDays,
+  isZonedWeekday,
+  zonedClockTime,
+  zonedDayKey,
+  zonedStartOfDay,
+} from '@/lib/utils/time';
+
 export const INVESTMENT_CONSTANTS = {
   SHARE_PRICE: 10000,
   DAILY_RETURN_RATE: 0.01,
@@ -77,30 +85,26 @@ export function calculateHoldingProgress(
 
 function countWeekdays(start: Date, end: Date): number {
   let count = 0;
-  const current = new Date(start);
-  current.setHours(0, 0, 0, 0);
-  const endDate = new Date(end);
-  endDate.setHours(0, 0, 0, 0);
+  const endDay = zonedDayKey(end);
+  let current = zonedStartOfDay(start);
 
-  while (current <= endDate) {
-    const day = current.getDay();
-    if (day !== 0 && day !== 6) { // Not Sunday (0) or Saturday (6)
+  while (zonedDayKey(current) <= endDay) {
+    if (isZonedWeekday(current)) {
       count++;
     }
-    current.setDate(current.getDate() + 1);
+    current = addZonedDays(current, 1);
   }
 
   return count;
 }
 
 export function calculateEndDate(startDate: Date): Date {
-  let current = new Date(startDate);
+  let current = zonedStartOfDay(startDate);
   let weekdaysCount = 0;
 
   while (weekdaysCount < INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS) {
-    current.setDate(current.getDate() + 1);
-    const day = current.getDay();
-    if (day !== 0 && day !== 6) {
+    current = addZonedDays(current, 1);
+    if (isZonedWeekday(current)) {
       weekdaysCount++;
     }
   }
@@ -109,44 +113,41 @@ export function calculateEndDate(startDate: Date): Date {
 }
 
 export function getTodaysPayoutsQuery() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const today = zonedStartOfDay(new Date());
+  const tomorrow = addZonedDays(today, 1);
 
   return {
     today,
     tomorrow,
-    isWeekday: today.getDay() !== 0 && today.getDay() !== 6,
+    isWeekday: isZonedWeekday(today),
   };
 }
 
 /**
  * Returns the payout dates due for a holding as of `now`.
- * The first payout date is the first day whose 6:00 AM is at least 24 hours
- * after `startDate`. Every subsequent weekday 6:00 AM adds one payout, capped
- * at TOTAL_WEEKDAYS. Weekends never produce payouts.
+ * The first payout date is the first day whose 6:00 AM IST is at least 24 hours
+ * after `startDate`. Every subsequent weekday 6:00 AM IST adds one payout,
+ * capped at TOTAL_WEEKDAYS. Weekends never produce payouts.
+ *
+ * All boundaries are evaluated in Asia/Kolkata regardless of the host's
+ * timezone so the daily batch fires at 6:00 AM India time.
  */
 export function eligibleWeekdayBatchDates(startDate: Date, now: Date = new Date()): Date[] {
   const eligibleAfter = new Date(new Date(startDate).getTime() + 24 * 60 * 60 * 1000);
-  const cursor = new Date(eligibleAfter.getFullYear(), eligibleAfter.getMonth(), eligibleAfter.getDate());
-  cursor.setHours(0, 0, 0, 0);
 
-  while (
-    new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), PAYOUT_BATCH_HOUR, 0, 0, 0).getTime() <
-    eligibleAfter.getTime()
-  ) {
-    cursor.setDate(cursor.getDate() + 1);
+  let cursor = zonedStartOfDay(eligibleAfter);
+  while (zonedClockTime(cursor, PAYOUT_BATCH_HOUR).getTime() < eligibleAfter.getTime()) {
+    cursor = addZonedDays(cursor, 1);
   }
 
   const dates: Date[] = [];
   while (dates.length < INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS) {
-    const batch = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), PAYOUT_BATCH_HOUR, 0, 0, 0);
-    if (batch.getTime() > now.getTime()) break;
-    if (batch.getDay() !== 0 && batch.getDay() !== 6) {
-      dates.push(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()));
+    const batch = zonedClockTime(cursor, PAYOUT_BATCH_HOUR).getTime();
+    if (batch > now.getTime()) break;
+    if (isZonedWeekday(cursor)) {
+      dates.push(cursor);
     }
-    cursor.setDate(cursor.getDate() + 1);
+    cursor = addZonedDays(cursor, 1);
   }
 
   return dates;

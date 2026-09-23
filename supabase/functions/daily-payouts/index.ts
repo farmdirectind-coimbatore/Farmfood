@@ -1,53 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import {
+  PAYOUT_TIMEZONE,
+  eligibleWeekdayBatchDates,
+  isZonedWeekday,
+  zonedStartOfDay,
+} from "../_shared/investment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-// Investment constants (inlined from _shared/investment.ts)
-const INVESTMENT_CONSTANTS = {
-  SHARE_PRICE: 10000,
-  DAILY_RETURN_RATE: 0.01,
-  TOTAL_WEEKDAYS: 249,
-  MIN_WITHDRAWAL: 100,
-  MAX_SHARES_PER_USER: 1000,
-  SCREENSHOT_MAX_SIZE: 5 * 1024 * 1024,
-} as const;
-
-const PAYOUT_BATCH_HOUR = 6;
-
-/**
- * Returns the payout dates due for a holding as of `now`.
- * The first payout date is the first day whose 6:00 AM is at least 24 hours
- * after `startDate`. Every subsequent weekday 6:00 AM adds one payout, capped
- * at TOTAL_WEEKDAYS. Weekends never produce payouts.
- */
-function eligibleWeekdayBatchDates(startDate: Date, now: Date = new Date()): Date[] {
-  const eligibleAfter = new Date(new Date(startDate).getTime() + 24 * 60 * 60 * 1000);
-  const cursor = new Date(eligibleAfter.getFullYear(), eligibleAfter.getMonth(), eligibleAfter.getDate());
-  cursor.setHours(0, 0, 0, 0);
-
-  while (
-    new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), PAYOUT_BATCH_HOUR, 0, 0, 0).getTime() <
-    eligibleAfter.getTime()
-  ) {
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  const dates: Date[] = [];
-  while (dates.length < INVESTMENT_CONSTANTS.TOTAL_WEEKDAYS) {
-    const batch = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), PAYOUT_BATCH_HOUR, 0, 0, 0);
-    if (batch.getTime() > now.getTime()) break;
-    if (batch.getDay() !== 0 && batch.getDay() !== 6) {
-      dates.push(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()));
-    }
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  return dates;
-}
 
 interface Holding {
   id: string;
@@ -97,15 +60,13 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayStart = today.toISOString();
+    const today = zonedStartOfDay(now);
 
-    // Skip weekends - no payouts on Saturday (6) or Sunday (0)
-    const dayOfWeek = today.getDay();
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
+    // Skip weekends - no payouts on Saturday (6) or Sunday (0) in IST
+    if (!isZonedWeekday(today)) {
       return new Response(JSON.stringify({ 
         message: "Weekend - no payouts generated",
-        day: dayOfWeek === 0 ? "Sunday" : "Saturday"
+        day: today.toLocaleDateString("en-US", { weekday: "long", timeZone: PAYOUT_TIMEZONE })
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -189,7 +150,7 @@ Deno.serve(async (req: Request) => {
             user_id: holding.user_id,
             type: "payout_scheduled",
             title: "Daily Payout Scheduled",
-            message: `₹${Number(holding.daily_payout).toLocaleString("en-IN")} has been scheduled for ${date.toLocaleDateString("en-IN", { day: "numeric", month: "long" })} for holding ${holding.shares} lot${holding.shares > 1 ? "s" : ""}. Running total: ₹${runningTotal.toLocaleString("en-IN")}.`,
+            message: `₹${Number(holding.daily_payout).toLocaleString("en-IN")} has been scheduled for ${date.toLocaleDateString("en-IN", { day: "numeric", month: "long", timeZone: PAYOUT_TIMEZONE })} for holding ${holding.shares} lot${holding.shares > 1 ? "s" : ""}. Running total: ₹${runningTotal.toLocaleString("en-IN")}.`,
             data: {
               payout_id: newRow.id,
               amount: Number(holding.daily_payout),
@@ -208,7 +169,7 @@ Deno.serve(async (req: Request) => {
       date: today.toISOString().slice(0, 10),
       generated: generatedCount,
       skipped: skippedCount,
-      message: `Generated ${generatedCount} payouts for ${today.toLocaleDateString("en-IN", { weekday: "long" })}`
+      message: `Generated ${generatedCount} payouts for ${today.toLocaleDateString("en-IN", { weekday: "long", timeZone: PAYOUT_TIMEZONE })}`
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

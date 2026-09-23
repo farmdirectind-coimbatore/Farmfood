@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { adminClient } from '@/lib/supabase/admin';
+import { zonedStartOfMonth, zonedStartOfYear } from '@/lib/utils/time';
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,8 +35,8 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
 
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const startOfMonth = zonedStartOfMonth(now);
+    const startOfYear = zonedStartOfYear(now);
 
     let totalPayouts = 0;
     let totalAmount = 0;
