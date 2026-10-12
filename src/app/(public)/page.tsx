@@ -2,16 +2,15 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import {
   Leaf, Fish, Coffee, MapPin, Users, Utensils,
-  TreePine, Factory, Package, Sunrise, ArrowRight,
-  TrendingUp, Shield, CalendarCheck,
+  TreePine, Factory, Sunrise, ArrowRight,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
-import { APP_CONSTANTS } from '@/lib/constants';
-import HomeCalculatorSection from './HomeCalculatorSection';
+import HomePromoVideo from './HomePromoVideo';
 
 export const metadata: Metadata = {
-  title: 'FarmDirect - Fresh Farm Investment Platform',
-  description: 'Invest in a real working farm in Coimbatore. 1 lot = ₹10,000. Earn 1% daily returns on weekdays for 249 days. Farm produce, livestock, hut restaurant, and agro-tourism.',
+  title: { absolute: 'FarmDirect | Agriculture & Aagritech' },
+  description: 'FarmDirect connects people with real agricultural operations in Coimbatore including crop cultivation, livestock, farming, fresh farm produce, wholesale distribution and agro-tourism.',
 };
 
 const revenueStreams = [
@@ -113,9 +112,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ════════════════════ LIVE CALCULATOR (embedded) ════════════════════ */}
-      <HomeCalculatorSection />
-
       {/* ════════════════════ REVENUE STREAMS ════════════════════ */}
       <section id="the-farm" className="scroll-mt-20 py-20 sm:py-24 px-4 bg-background">
         <div className="max-w-6xl mx-auto">
@@ -178,31 +174,7 @@ export default function HomePage() {
             Not a financial instrument — a genuine stake in a real farm. Your capital goes into land, crops, livestock, and infrastructure you can visit.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/15 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-4">
-                <Package className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-1">₹10,000 per Lot</h3>
-              <p className="text-white/70 text-sm">Buy 1 or more. No upper limit.</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/15 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-4">
-                <Sunrise className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-1">1% Daily Return</h3>
-              <p className="text-white/70 text-sm">₹100/day per lot on weekdays (Mon–Fri)</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/15 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-4">
-                <CalendarCheck className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-1">249 Weekdays</h3>
-              <p className="text-white/70 text-sm">~1 year cycle · Daily payouts on weekdays (Mon–Fri)</p>
-            </div>
-          </div>
+          <HomePromoVideo />
 
           <div className="mt-10">
             <Link

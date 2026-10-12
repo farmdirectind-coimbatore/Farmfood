@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Building2, Landmark, CheckCircle2, Loader2, Star, CreditCard, Hash, Link2, Pencil, X, Save, Smartphone } from 'lucide-react';
 import { format } from 'date-fns';
+import PromoVideoManager from '@/components/admin/PromoVideoManager';
 
 interface BankDetail {
   id: string;
@@ -95,6 +96,8 @@ export default function AdminBankDetailsPage() {
           The active account is shown to investors on the Buy Shares page. Edit values and they appear on the site instantly.
         </p>
       </div>
+
+      <PromoVideoManager />
 
       {!activeRecord && (
         <div className="bg-[#fef3c7] border border-[#fde68a] rounded-2xl p-4 text-sm text-[#92400e]">

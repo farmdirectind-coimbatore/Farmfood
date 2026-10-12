@@ -23,18 +23,18 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "FarmDirect - Fresh Farm Investment Platform",
+    default: "FarmDirect | Agriculture & Aagritech",
     template: "%s | FarmDirect",
   },
-  description: "Invest in a real working farm in Coimbatore. 1 lot = ₹10,000. Earn 1% daily returns on weekdays for 249 days from real farm revenue — produce, livestock, hut restaurant and agro-tourism.",
+  description: "FarmDirect connects people with real agricultural operations in Coimbatore including crop cultivation, livestock, farming, fresh farm produce, wholesale distribution and agro-tourism.",
   keywords: ["FarmDirect", "farm investment", "Coimbatore", "Tamil Nadu", "agro-tourism", "passive income", "farm revenue sharing", "hut restaurant"],
   authors: [{ name: "FarmDirect Team" }],
   icons: {
     icon: "/images/favicon.png",
   },
   openGraph: {
-    title: "FarmDirect - Fresh Farm Investment Platform",
-    description: "Own a piece of a working farm. Earn daily returns from real agricultural revenue.",
+    title: "FarmDirect | Agriculture & Aagritech",
+    description: "FarmDirect connects people with real agricultural operations in Coimbatore including crop cultivation, livestock, farming, fresh farm produce, wholesale distribution and agro-tourism.",
     url: "https://farmdirect.co.in",
     siteName: "FarmDirect",
     type: "website",
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "FarmDirect - Fresh Farm Investment Platform",
-    description: "Own a piece of a working farm. Earn daily returns from real agricultural revenue.",
+    title: "FarmDirect | Agriculture & Aagritech",
+    description: "FarmDirect connects people with real agricultural operations in Coimbatore including crop cultivation, livestock, farming, fresh farm produce, wholesale distribution and agro-tourism.",
   },
 };
 
