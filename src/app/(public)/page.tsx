@@ -13,6 +13,31 @@ export const metadata: Metadata = {
   description: 'FarmDirect connects people with real agricultural operations in Coimbatore including crop cultivation, livestock, farming, fresh farm produce, wholesale distribution and agro-tourism.',
 };
 
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'FarmDirect',
+  url: 'https://farmdirect.co.in',
+  image: 'https://farmdirect.co.in/images/hero-farmland.png',
+  description:
+    'FarmDirect connects people with real agricultural operations in Coimbatore including crop cultivation, livestock, farming, fresh farm produce, wholesale distribution and agro-tourism.',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Coimbatore',
+    addressRegion: 'Tamil Nadu',
+    addressCountry: 'IN',
+  },
+  areaServed: 'Coimbatore, Tamil Nadu',
+  knowsAbout: [
+    'crop cultivation',
+    'livestock farming',
+    'fresh farm produce',
+    'wholesale distribution',
+    'agro-tourism',
+    'agritech',
+  ],
+};
+
 const revenueStreams = [
   {
     icon: Leaf,
@@ -61,6 +86,10 @@ const revenueStreams = [
 export default function HomePage() {
   return (
     <div className="bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
 
       {/* ════════════════════ HERO ════════════════════ */}
       <section className="relative min-h-[85vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
@@ -87,7 +116,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-white/85 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl mx-auto mb-8">
-            Real returns from real agriculture — farm produce, livestock, hospitality, and agro-tourism, all in one place.
+            FarmDirect connects people with real agricultural operations in Coimbatore — crop cultivation, livestock, fresh farm produce, wholesale distribution and agro-tourism, all in one place.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

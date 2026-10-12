@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'FarmDirect - Fresh Farm Investment Platform',
+    name: 'FarmDirect | Agriculture & Aagritech',
     short_name: 'FarmDirect',
-    description: 'Invest in a real working farm. Earn daily returns from farm revenue.',
+    description: 'FarmDirect connects people with real agricultural operations in Coimbatore — crop cultivation, livestock, fresh farm produce, wholesale distribution and agro-tourism.',
     start_url: '/',
     display: 'standalone',
     background_color: '#fafdf7',

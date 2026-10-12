@@ -137,7 +137,7 @@ function LoginForm() {
 
           <div className="flex items-center justify-center gap-2 mt-8">
             <Leaf className="w-4 h-4 text-[#95d5b2]" />
-            <p className="text-xs text-white/60">FarmDirect - Fresh Farm Investment Platform</p>
+            <p className="text-xs text-white/60">FarmDirect | Agriculture &amp; Aagritech</p>
           </div>
         </div>
       </div>

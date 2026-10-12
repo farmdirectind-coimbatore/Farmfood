@@ -22,13 +22,27 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://farmdirect.co.in"),
   title: {
     default: "FarmDirect | Agriculture & Aagritech",
-    template: "%s | FarmDirect",
+    template: "%s",
   },
   description: "FarmDirect connects people with real agricultural operations in Coimbatore including crop cultivation, livestock, farming, fresh farm produce, wholesale distribution and agro-tourism.",
-  keywords: ["FarmDirect", "farm investment", "Coimbatore", "Tamil Nadu", "agro-tourism", "passive income", "farm revenue sharing", "hut restaurant"],
+  keywords: ["FarmDirect", "agriculture", "agritech", "agri-tech", "Coimbatore", "Tamil Nadu", "crop cultivation", "livestock", "fresh farm produce", "wholesale distribution", "agro-tourism", "working farm"],
   authors: [{ name: "FarmDirect Team" }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://farmdirect.co.in",
+  },
   icons: {
     icon: "/images/favicon.png",
   },
@@ -44,7 +58,7 @@ export const metadata: Metadata = {
         url: "https://farmdirect.co.in/images/hero-farmland.png",
         width: 1200,
         height: 630,
-        alt: "FarmDirect Farm Investment",
+        alt: "FarmDirect - real agriculture and agritech in Coimbatore",
       },
     ],
   },
@@ -52,6 +66,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "FarmDirect | Agriculture & Aagritech",
     description: "FarmDirect connects people with real agricultural operations in Coimbatore including crop cultivation, livestock, farming, fresh farm produce, wholesale distribution and agro-tourism.",
+    images: ["https://farmdirect.co.in/images/hero-farmland.png"],
   },
 };
 
